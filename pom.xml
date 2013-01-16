@@ -9,7 +9,8 @@
   <packaging>jar</packaging>
   <name>ncWMS</name>
   <!--version>1.0.tds.4.3.20120807.1030</version-->
-  <version>1.0.tds.4.3.20121211.1130</version>
+  <!-- version>1.0.tds.4.3.20121211.1130</version-->
+  <version>1.0.tds.4.3.20130116.1130</version>
   <description>
     ncWMS is an OGC Web Map Service (WMS) for geospatial data that are
     stored in CF-compliant NetCDF files.
@@ -106,7 +107,7 @@
     <dependency>
       <groupId>edu.ucar</groupId>
       <artifactId>netcdf</artifactId>
-      <version>4.3.15</version>
+      <version>4.3.16-SNAPSHOT</version>
     </dependency>
 
     <dependency>

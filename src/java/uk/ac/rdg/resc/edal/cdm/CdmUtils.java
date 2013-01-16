@@ -210,7 +210,8 @@ public final class CdmUtils
     public static ReferenceableAxis createReferenceableAxis(CoordinateAxis1D axis, boolean isLongitude)
     {
         if (axis == null) throw new NullPointerException();
-        String name = axis.getName();
+        //String name = axis.getName();
+        String name = axis.getShortName();
         // TODO: generate coordinate system axes if appropriate
         if (axis.isRegular())
         {
@@ -790,7 +791,8 @@ public final class CdmUtils
             Attribute longNameAtt = var.findAttributeIgnoreCase("long_name");
             if (longNameAtt == null || longNameAtt.getStringValue().trim().equals(""))
             {
-                return var.getName();
+                //return var.getName();
+            	return var.getShortName();
             }
             else
             {
