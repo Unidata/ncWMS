@@ -100,7 +100,7 @@ class DataChunk
         try
         {
             //log.debug("Reading from variable {} with ranges {}", var.getName(), ranges.toString());
-        	log.debug("Reading from variable {} with ranges {}", var.getShortName(), ranges.toString());
+        	log.debug("Reading from variable {} with ranges {}", var.getFullName(), ranges.toString());
             return var.read(ranges.getRanges());
         }
         catch(InvalidRangeException ire)

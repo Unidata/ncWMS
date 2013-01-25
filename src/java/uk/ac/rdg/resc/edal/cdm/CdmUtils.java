@@ -211,7 +211,7 @@ public final class CdmUtils
     {
         if (axis == null) throw new NullPointerException();
         //String name = axis.getName();
-        String name = axis.getShortName();
+        String name = axis.getFullName();
         // TODO: generate coordinate system axes if appropriate
         if (axis.isRegular())
         {
@@ -792,7 +792,7 @@ public final class CdmUtils
             if (longNameAtt == null || longNameAtt.getStringValue().trim().equals(""))
             {
                 //return var.getName();
-            	return var.getShortName();
+            	return var.getFullName();
             }
             else
             {
