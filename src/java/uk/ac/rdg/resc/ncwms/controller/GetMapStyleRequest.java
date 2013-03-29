@@ -56,6 +56,7 @@ public class GetMapStyleRequest
     // colour scale
     private Range<Float> colorScaleRange;
     private float vectorScale;
+    private float vectorStep;
     
     /**
      * Creates a new instance of GetMapStyleRequest from the given parameters
@@ -92,6 +93,7 @@ public class GetMapStyleRequest
         this.numColourBands = getNumColourBands(params);
         this.logarithmic = isLogScale(params);
         this.vectorScale = Float.parseFloat(params.getString("vectorScale", "1").toLowerCase());
+        this.vectorStep = Float.parseFloat(params.getString("vectorStep", "1").toLowerCase());
     }
     
     /**
@@ -224,5 +226,8 @@ public class GetMapStyleRequest
     {
         return vectorScale;
     }
-    
+    public float getVectorStep()
+    {
+        return vectorStep;
+    }
 }
