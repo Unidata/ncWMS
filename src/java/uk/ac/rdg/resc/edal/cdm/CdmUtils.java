@@ -34,10 +34,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Map;
+
 import org.geotoolkit.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.geotoolkit.referencing.crs.DefaultGeographicCRS;
 import org.joda.time.Chronology;
@@ -49,6 +49,7 @@ import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ucar.ma2.Index;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
@@ -64,6 +65,7 @@ import ucar.nc2.dt.GridDataset;
 import ucar.nc2.dt.GridDataset.Gridset;
 import ucar.nc2.dt.GridDatatype;
 import ucar.nc2.ft.FeatureDatasetFactoryManager;
+import ucar.nc2.time.CalendarDate;
 import ucar.unidata.geoloc.LatLonPoint;
 import ucar.unidata.geoloc.LatLonRect;
 import uk.ac.rdg.resc.edal.coverage.CoverageMetadata;
@@ -386,9 +388,10 @@ public final class CdmUtils
         {
             List<DateTime> timesteps = new ArrayList<DateTime>();
             // Use the Java NetCDF library's built-in date parsing code
-            for (Date date : timeAxis.getTimeDates())
+            //for (Date date : timeAxis.getTimeDates())
+            for (CalendarDate date : timeAxis.getCalendarDates() )
             {
-                timesteps.add(new DateTime(date, DateTimeZone.UTC));
+                timesteps.add(new DateTime(date.getMillis() , DateTimeZone.UTC));
             }
             return timesteps;
         }

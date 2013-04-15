@@ -1,0 +1,10 @@
+/target
+
+# Ignore eclipse project files
+.classpath
+.project
+.settings/
+bin/
+build/
+dist/
+*~

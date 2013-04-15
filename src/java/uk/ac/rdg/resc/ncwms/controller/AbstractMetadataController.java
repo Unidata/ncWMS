@@ -278,7 +278,13 @@ public abstract class AbstractMetadataController
         // We only need the bit of the GetMap request that pertains to data extraction
         // TODO: the hard-coded "1.1.1" is ugly: it basically means that the
         // GetMapDataRequest object will look for "SRS" instead of "CRS"
-        GetMapDataRequest dr = new GetMapDataRequest(params, "1.1.1");
+        //GetMapDataRequest dr = new GetMapDataRequest(params, "1.1.1");
+        
+    	String version =params.getWmsVersion();
+        if(version == null){
+        	version ="1.1.1"; //Defaulting to 1.1.1 
+         }
+        GetMapDataRequest dr = new GetMapDataRequest(params, version );        
         
         // Get the variable we're interested in
         Layer layer = this.layerFactory.getLayer(dr.getLayers()[0]);
