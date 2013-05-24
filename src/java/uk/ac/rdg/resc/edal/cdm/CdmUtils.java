@@ -141,7 +141,7 @@ public final class CdmUtils
             // Create a CoverageMetadata object for each GridDatatype
             for (GridDatatype grid : gridset.getGrids())
             {
-                logger.debug("Creating new CoverageMetadata object for {}", grid.getName());
+                logger.debug("Creating new CoverageMetadata object for {}", grid.getFullName() );
                 CoverageMetadata cm = new CdmCoverageMetadata(
                     grid, temp.bbox, temp.hGrid, temp.timesteps, temp.zAxis
                 );
@@ -800,7 +800,7 @@ public final class CdmUtils
             Attribute longNameAtt = var.findAttributeIgnoreCase("long_name");
             if (longNameAtt == null || longNameAtt.getStringValue().trim().equals(""))
             {
-                return var.getName();
+                return var.getFullName();
             }
             else
             {
