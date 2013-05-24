@@ -47,6 +47,7 @@ import ucar.nc2.dt.GridDatatype;
 import uk.ac.rdg.resc.edal.cdm.CurvilinearGrid.Cell;
 import uk.ac.rdg.resc.edal.coverage.grid.HorizontalGrid;
 import uk.ac.rdg.resc.edal.coverage.grid.impl.GridCoordinatesImpl;
+import uk.ac.rdg.resc.edal.geometry.impl.LonLatPositionImpl;
 import uk.ac.rdg.resc.edal.util.CollectionUtils;
 import uk.ac.rdg.resc.edal.util.Utils;
 
@@ -138,14 +139,12 @@ final class RTreeGrid extends AbstractCurvilinearGrid
      * lat-lon point is not contained within this layer's domain.
      */
     @Override
-    public GridCoordinates findNearestGridPoint(HorizontalPosition pos)
+    protected GridCoordinates findNearestGridPoint(double lon, double lat)
     {
-        LonLatPosition lonLatPos = Utils.transformToWgs84LonLat(pos);
-        float lon = (float)lonLatPos.getLongitude();
-        float lat = (float)lonLatPos.getLatitude();
+        LonLatPosition lonLatPos = new LonLatPositionImpl(lon, lat);
         
         // Create a rectangle representing the target point
-        Rectangle rect = new Rectangle(lon, lat, lon, lat);
+        Rectangle rect = new Rectangle((float)lon, (float)lat, (float)lon, (float)lat);
         IndexCollector indexCollector = new IndexCollector();
 
         // Query the rTree

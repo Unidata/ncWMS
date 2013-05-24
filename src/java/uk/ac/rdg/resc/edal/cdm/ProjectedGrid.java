@@ -42,6 +42,7 @@ import ucar.unidata.geoloc.Projection;
 import ucar.unidata.geoloc.ProjectionImpl;
 import ucar.unidata.geoloc.ProjectionPoint;
 import ucar.unidata.geoloc.projection.RotatedPole;
+import uk.ac.rdg.resc.edal.coverage.domain.Domain;
 import uk.ac.rdg.resc.edal.coverage.grid.GridCoordinates;
 import uk.ac.rdg.resc.edal.coverage.grid.HorizontalGrid;
 import uk.ac.rdg.resc.edal.coverage.grid.ReferenceableAxis;
@@ -52,6 +53,7 @@ import uk.ac.rdg.resc.edal.geometry.BoundingBox;
 import uk.ac.rdg.resc.edal.geometry.HorizontalPosition;
 import uk.ac.rdg.resc.edal.geometry.LonLatPosition;
 import uk.ac.rdg.resc.edal.geometry.impl.LonLatPositionImpl;
+import uk.ac.rdg.resc.edal.util.CollectionUtils;
 import uk.ac.rdg.resc.edal.util.Utils;
 
 /**
@@ -97,9 +99,10 @@ class ProjectedGrid extends AbstractHorizontalGrid
         return new LonLatPositionImpl(latLon.getLongitude(), latLon.getLatitude());
     }
 
+    // The coordinate has already been converted to lat-lon coordinates
     @Override
-    public GridCoordinates findNearestGridPoint(HorizontalPosition pos) {
-        ProjectionPoint point = this.getProjectionPoint(pos);
+    protected GridCoordinates findNearestGridPoint(double x, double y) {
+        ProjectionPoint point = this.getProjectionPoint(x, y);
         int i = this.xAxis.getNearestCoordinateIndex(point.getX());
         int j = this.yAxis.getNearestCoordinateIndex(point.getY());
         if (i < 0 || j < 0) return null;
@@ -108,7 +111,8 @@ class ProjectedGrid extends AbstractHorizontalGrid
     
     @Override
     public GridCoordinates inverseTransformCoordinates(HorizontalPosition pos) {
-        ProjectionPoint point = this.getProjectionPoint(pos);
+        HorizontalPosition latLon = Utils.transformPosition(pos, this.getCoordinateReferenceSystem());
+        ProjectionPoint point = this.getProjectionPoint(latLon.getX(), latLon.getY());
         int i = this.xAxis.getCoordinateIndex(point.getX());
         int j = this.yAxis.getCoordinateIndex(point.getY());
         if (i < 0 || j < 0) return null;
@@ -116,11 +120,9 @@ class ProjectedGrid extends AbstractHorizontalGrid
     }
 
     /** Gets the projection point (in the CRS of this grid's axes) that
-     * corresponds with the given horizontal position */
-    private ProjectionPoint getProjectionPoint(HorizontalPosition pos) {
-        // Translate the point into lat-lon coordinates
-        pos = Utils.transformPosition(pos, this.getCoordinateReferenceSystem());
-        return this.proj.latLonToProj(pos.getY(), pos.getX());
+     * corresponds with the given longitude-latitude position. */
+    private ProjectionPoint getProjectionPoint(double lon, double lat) {
+        return this.proj.latLonToProj(lat, lon);
     }
 
     @Override

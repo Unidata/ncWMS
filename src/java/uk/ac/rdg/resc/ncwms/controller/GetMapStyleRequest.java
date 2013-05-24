@@ -51,11 +51,13 @@ public class GetMapStyleRequest
     private Color backgroundColour;
     private int opacity; // Opacity of the image in the range [0,100]
     private int numColourBands; // Number of colour bands to use in the image
+    private int numContours; // Number of contours to use in the image
     private Boolean logarithmic; // True if we're using a log scale, false if linear and null if not specified
     // These are the data values that correspond with the extremes of the
     // colour scale
     private Range<Float> colorScaleRange;
-    private float vectorScale;
+    private Color highColor;
+    private Color lowColor;
     
     /**
      * Creates a new instance of GetMapStyleRequest from the given parameters
@@ -85,13 +87,49 @@ public class GetMapStyleRequest
             throw new WmsException("Invalid format for BGCOLOR");
         }
         
+        String lowColorStr = params.getString("belowmincolor");
+        if(lowColorStr == null) {
+            lowColor = Color.black;
+        } else if(lowColorStr.equalsIgnoreCase("extend")) {
+            lowColor = null;
+        } else if(lowColorStr.equalsIgnoreCase("transparent")) {
+            lowColor = new Color(0, 0, 0, 0);
+        } else {
+            try {
+                if (lowColorStr.length() != 8 || !lowColorStr.startsWith("0x"))
+                    throw new Exception();
+                // Parse the hexadecimal string, ignoring the "0x" prefix
+                lowColor= new Color(Integer.parseInt(lowColorStr.substring(2), 16));
+            } catch (Exception e) {
+                throw new WmsException("Invalid format for BELOWMINCOLOR");
+            }
+        }
+        
+        String highColorStr = params.getString("abovemaxcolor");
+        if(highColorStr == null) {
+            highColor = Color.black;
+        } else if(highColorStr.equalsIgnoreCase("extend")) {
+            highColor = null;
+        } else if(highColorStr.equalsIgnoreCase("transparent")) {
+            highColor = new Color(0, 0, 0, 0);
+        } else {
+            try {
+                if (highColorStr.length() != 8 || !highColorStr.startsWith("0x"))
+                    throw new Exception();
+                // Parse the hexadecimal string, ignoring the "0x" prefix
+                highColor = new Color(Integer.parseInt(highColorStr.substring(2), 16));
+            } catch (Exception e) {
+                throw new WmsException("Invalid format for ABOVEMAXCOLOR");
+            }
+        }
+        
         this.opacity = params.getPositiveInt("opacity", 100);
         if (this.opacity > 100) this.opacity = 100;
         
         this.colorScaleRange = getColorScaleRange(params);
         this.numColourBands = getNumColourBands(params);
+        this.numContours = getNumContours(params);
         this.logarithmic = isLogScale(params);
-        this.vectorScale = Float.parseFloat(params.getString("vectorScale", "1").toLowerCase());
     }
     
     /**
@@ -147,6 +185,20 @@ public class GetMapStyleRequest
     }
     
     /**
+     * Gets the number of contours requested by the client, or 10 if none
+     * has been set or the requested number was less than 2.
+     * @param params The RequestParams object from the client.
+     * @return the requested number of contours
+     * @throws WmsException if the client requested a negative number of contours
+     */
+    static int getNumContours(RequestParams params) throws WmsException
+    {
+        int numContours = params.getPositiveInt("numcontours", 10);
+        if (numContours < 2) numContours = 10;
+        return numContours;
+    }
+    
+    /**
      * Returns {@link Boolean#TRUE} if the client has requested a logarithmic scale,
      * {@link Boolean#FALSE} if the client has requested a linear scale,
      * or null if the client did not specify.
@@ -197,6 +249,15 @@ public class GetMapStyleRequest
     {
         return backgroundColour;
     }
+    
+
+    public Color getLowOutOfRangeColour() {
+        return lowColor;
+    }
+
+    public Color getHighOutOfRangeColour() {
+        return highColor;
+    }
 
     public int getOpacity()
     {
@@ -219,10 +280,8 @@ public class GetMapStyleRequest
     {
         return numColourBands;
     }
-
-    public float getVectorScale()
-    {
-        return vectorScale;
-    }
     
+    public int getNumContours() {
+        return numContours;
+    }
 }

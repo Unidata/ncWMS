@@ -28,16 +28,47 @@
 
 package uk.ac.rdg.resc.ncwms.wms;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.joda.time.DateTime;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
+
+import uk.ac.rdg.resc.edal.coverage.grid.RegularGrid;
+import uk.ac.rdg.resc.ncwms.exceptions.InvalidDimensionValueException;
+
 /**
  * A displayable Layer that is made up of two vector components (e.g. northward
  * and eastward velocities).
+ * 
  * @author Jon
  */
-public interface VectorLayer extends Layer
-{
-    /** Returns the ScalarLayer representing the eastward component */
-    public ScalarLayer getEastwardComponent();
-    
-    /** Returns the ScalarLayer representing the northward component */
-    public ScalarLayer getNorthwardComponent();
+public interface VectorLayer extends Layer {
+    /** Returns the ScalarLayer representing the x-component */
+    public ScalarLayer getXComponent();
+
+    /** Returns the ScalarLayer representing the y-component */
+    public ScalarLayer getYComponent();
+
+    /**
+     * Reads the X and Y components of the data. X and Y refer to the X/Y
+     * directions on the specified grid.
+     * 
+     * @param dateTime
+     *            The {@link DateTime} to read from
+     * @param elevation
+     *            The elevation to read from
+     * @param grid
+     *            The grid onto which the data should be read, and which the X/Y
+     *            directions refer to.
+     * @return A 2-element array containing the X/Y components of the data
+     * @throws InvalidDimensionValueException
+     * @throws IOException
+     * @throws FactoryException
+     * @throws TransformException
+     */
+    public List<Float>[] readXYComponents(DateTime dateTime, double elevation, RegularGrid grid)
+            throws InvalidDimensionValueException, IOException, FactoryException,
+            TransformException;
 }

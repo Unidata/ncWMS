@@ -48,7 +48,7 @@ import uk.ac.rdg.resc.edal.util.Utils;
  * point.
  * @author Jon
  */
-abstract class AbstractCurvilinearGrid extends AbstractHorizontalGrid
+public abstract class AbstractCurvilinearGrid extends AbstractHorizontalGrid
 {
     protected final CurvilinearGrid curvGrid;
     private final GridEnvelopeImpl gridExtent;

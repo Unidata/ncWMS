@@ -37,6 +37,7 @@ import uk.ac.rdg.resc.edal.coverage.grid.GridCoordinates;
 import uk.ac.rdg.resc.edal.coverage.grid.HorizontalGrid;
 import uk.ac.rdg.resc.edal.geometry.HorizontalPosition;
 import uk.ac.rdg.resc.edal.util.CollectionUtils;
+import uk.ac.rdg.resc.edal.util.Utils;
 
 /**
  * Abstract superclass that partially implements a two-dimensional
@@ -111,20 +112,45 @@ public abstract class AbstractHorizontalGrid extends AbstractGrid implements Hor
 
     /**
      * {@inheritDoc}
-     * <p>This implementation simply calls
-     * {@link #findNearestGridPoint(uk.ac.rdg.resc.edal.position.HorizontalPosition)
-     * for each horizontal position within the domain, returning an unmodifiable
-     * list of grid coordinates.  Subclasses are encouraged
-     * to implement more efficient methods if possible.</p>
+     * <p>This implementation uses {@link Utils#transformDomain(uk.ac.rdg.resc.edal.coverage.domain.Domain, org.opengis.referencing.crs.CoordinateReferenceSystem)
+     * Utils.transformDomain()} to convert the domain's points to this grid's
+     * CRS in one operation, then calls {@link #findNearestGridPoint(double, double)}
+     * for each resulting point.</p>
      */
     @Override
     public List<GridCoordinates> findNearestGridPoints(Domain<HorizontalPosition> domain) {
-        List<GridCoordinates> gridCoords = CollectionUtils.newArrayList();
-        for (HorizontalPosition pos : domain.getDomainObjects()) {
-            gridCoords.add(this.findNearestGridPoint(pos));
+        // Translate all points into this coordinate reference system
+        List<HorizontalPosition> positions = Utils.transformDomain(domain, this.crs);
+        // Now translate all of these to grid coordinates
+        List<GridCoordinates> gridCoords = CollectionUtils.newArrayList(positions.size());
+        for (HorizontalPosition pos : positions) {
+            gridCoords.add(findNearestGridPoint(pos.getX(), pos.getY()));
         }
         return Collections.unmodifiableList(gridCoords);
     }
+    
+    /**
+     * {@inheritDoc}
+     * <p>This implementation uses {@link Utils#transformPosition(uk.ac.rdg.resc.edal.geometry.HorizontalPosition, org.opengis.referencing.crs.CoordinateReferenceSystem) 
+     * Utils.transformPosition()} to convert the point to this grid's
+     * CRS, then calls {@link #findNearestGridPoint(double, double)}.</p>
+     */
+    @Override
+    public GridCoordinates findNearestGridPoint(HorizontalPosition pos) {
+        HorizontalPosition newPos = Utils.transformPosition(pos, this.crs);
+        return this.findNearestGridPoint(newPos.getX(), newPos.getY());
+    }
+    
+    /**
+     * Finds the nearest (two-dimensional) grid point to the given position,
+     * which is expressed in the {@link #getCoordinateReferenceSystem() CRS
+     * of this grid}.
+     * @param x The x coordinate within the grid's CRS
+     * @param y The y coordinate within the grid's CRS
+     * @return the nearest grid point to the given position, or null if the
+     * position is outside the {@link BoundingBox bounding box} of the grid.
+     */
+    protected abstract GridCoordinates findNearestGridPoint(double x, double y);
 
     /**
      * Returns an unmodifiable List of horizontal positions derived from the two axes.

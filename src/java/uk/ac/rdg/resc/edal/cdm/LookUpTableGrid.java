@@ -41,6 +41,7 @@ import uk.ac.rdg.resc.edal.coverage.grid.impl.GridCoordinatesImpl;
 import uk.ac.rdg.resc.edal.util.CollectionUtils;
 import uk.ac.rdg.resc.edal.util.Utils;
 import uk.ac.rdg.resc.edal.cdm.CurvilinearGrid.Cell;
+import uk.ac.rdg.resc.edal.geometry.impl.LonLatPositionImpl;
 
 /**
  * A HorizontalGrid that is created from a "curvilinear" coordinate system,
@@ -122,16 +123,15 @@ final class LookUpTableGrid extends AbstractCurvilinearGrid
      * lat-lon point is not contained within this layer's domain.
      */
     @Override
-    public GridCoordinates findNearestGridPoint(HorizontalPosition pos)
+    protected GridCoordinates findNearestGridPoint(double lon, double lat)
     {
-        LonLatPosition lonLatPos = Utils.transformToWgs84LonLat(pos);
-        int[] lutCoords =
-                this.lut.getGridCoordinates(lonLatPos.getLongitude(), lonLatPos.getLatitude());
+        int[] lutCoords = this.lut.getGridCoordinates(lon, lat);
         // Return null if the latLonPoint does not match a valid grid point
         if (lutCoords == null) return null;
         // Check that this cell really contains this point, if not, check
         // the neighbours
         Cell cell = this.curvGrid.getCell(lutCoords[0], lutCoords[1]);
+        LonLatPosition lonLatPos = new LonLatPositionImpl(lon, lat);
         if (cell.contains(lonLatPos)) return new GridCoordinatesImpl(lutCoords);
 
         // We do a gradient-descent method to find the true nearest neighbour

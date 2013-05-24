@@ -725,7 +725,7 @@ public class Charting
             final boolean logarithmic)
     {
         final IndexColorModel cm = colorPalette.getColorModel(numColourBands, 100,
-                Color.white, true);
+                Color.white, Color.black, Color.black, true);
 
         return new PaintScale()
         {
@@ -752,27 +752,37 @@ public class Charting
              */
             private int getColourIndex(double value)
             {
-                if (Double.isNaN(value))
-                {
+                if (Double.isNaN(value)) {
                     return numColourBands; // represents a background pixel
-                }
-                else if (value < this.getLowerBound() || value > this.getUpperBound())
-                {
-                    return numColourBands + 1; // represents an out-of-range pixel
-                }
-                else
-                {
-                    double min = logarithmic ? Math.log(this.getLowerBound()) : this.getLowerBound();
-                    double max = logarithmic ? Math.log(this.getUpperBound()) : this.getUpperBound();
+                } else if (value < this.getLowerBound()) {
+                    /*
+                     * represents a low out-of-range pixel
+                     */
+                    return numColourBands + 1; 
+                } else if (value > this.getUpperBound()) {
+                    /*
+                     * represents a high out-of-range pixel
+                     */
+                    return numColourBands + 2; 
+                } else {
+                    double min = logarithmic ? Math.log(this.getLowerBound()) : this
+                            .getLowerBound();
+                    double max = logarithmic ? Math.log(this.getUpperBound()) : this
+                            .getUpperBound();
                     double val = logarithmic ? Math.log(value) : value;
                     double frac = (val - min) / (max - min);
                     // Compute and return the index of the corresponding colour
-                    int index = (int)(frac * numColourBands);
-                    // For values very close to the maximum value in the range, this
-                    // index might turn out to be equal to this.numColourBands due to
-                    // rounding error.  In this case we subtract one from the index to
-                    // ensure that such pixels are not displayed as background pixels.
-                    if (index == numColourBands) index--;
+                    int index = (int) (frac * numColourBands);
+                    // For values very close to the maximum value in the range,
+                    // this
+                    // index might turn out to be equal to this.numColourBands
+                    // due to
+                    // rounding error. In this case we subtract one from the
+                    // index to
+                    // ensure that such pixels are not displayed as background
+                    // pixels.
+                    if (index == numColourBands)
+                        index--;
                     return index;
                 }
             }

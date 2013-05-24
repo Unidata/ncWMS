@@ -278,13 +278,7 @@ public abstract class AbstractMetadataController
         // We only need the bit of the GetMap request that pertains to data extraction
         // TODO: the hard-coded "1.1.1" is ugly: it basically means that the
         // GetMapDataRequest object will look for "SRS" instead of "CRS"
-        //GetMapDataRequest dr = new GetMapDataRequest(params, "1.1.1");
-        
-    	String version =params.getWmsVersion();
-        if(version == null){
-        	version ="1.1.1"; //Defaulting to 1.1.1 
-         }
-        GetMapDataRequest dr = new GetMapDataRequest(params, version );        
+        GetMapDataRequest dr = new GetMapDataRequest(params, "1.1.1");
         
         // Get the variable we're interested in
         Layer layer = this.layerFactory.getLayer(dr.getLayers()[0]);
@@ -309,8 +303,8 @@ public abstract class AbstractMetadataController
         else if (layer instanceof VectorLayer)
         {
             VectorLayer vecLayer = (VectorLayer)layer;
-            List<Float> east = vecLayer.getEastwardComponent().readHorizontalPoints(tValue, zValue, grid);
-            List<Float> north = vecLayer.getNorthwardComponent().readHorizontalPoints(tValue, zValue, grid);
+            List<Float> east = vecLayer.getXComponent().readHorizontalPoints(tValue, zValue, grid);
+            List<Float> north = vecLayer.getYComponent().readHorizontalPoints(tValue, zValue, grid);
             magnitudes = WmsUtils.getMagnitudes(east, north);
         }
         else

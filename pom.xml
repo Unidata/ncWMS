@@ -12,7 +12,7 @@
   <!-- version>1.0.tds.4.3.20121211.1130</version-->
   <!-- version>1.0.tds.4.3.20130116.1130</version-->
   <!-- version>1.0.tds.4.3.20130402.1500</version-->
-  <version>1.0.tds.4.3.20130402.1500-SNAPSHOT</version>
+  <version>1.0.tds.4.3.20130523.1500</version>
   <description>
     ncWMS is an OGC Web Map Service (WMS) for geospatial data that are
     stored in CF-compliant NetCDF files.
@@ -114,7 +114,7 @@
     <dependency>
       <groupId>edu.ucar</groupId>
       <artifactId>netcdf</artifactId>
-      <version>4.3.17-SNAPSHOT</version>
+      <version>4.3.16</version>
     </dependency>
 
     <dependency>
@@ -167,6 +167,12 @@
       <version>4.5</version>
       <scope>test</scope>
     </dependency>
+    
+    <dependency>
+      <groupId>gov.noaa.pmel</groupId>
+      <artifactId>SGT_toolkit</artifactId>
+      <version>3.0</version>
+    </dependency>    
 
     <!-- ========== Needed for standalone ncWMS not for TDS/ncWMS. ========== -->
 

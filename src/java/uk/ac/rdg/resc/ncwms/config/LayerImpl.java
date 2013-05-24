@@ -103,16 +103,6 @@ final class LayerImpl extends AbstractTimeAggregatedLayer
     }
 
     /**
-     * @return true if this variable should return time intervals in the
-     * GetCapabilities document.  Delegates to Dataset.isIntervalTime().
-     */
-    @Override
-    public boolean isIntervalTime()
-    {
-        return this.dataset.isIntervalTime();
-    }
-
-    /**
      * Return true if we are to use logarithmic colour scaling by default for
      * this layer.
      * @return true if we are to use logarithmic colour scaling by default for
@@ -203,7 +193,7 @@ final class LayerImpl extends AbstractTimeAggregatedLayer
      * @throws InvalidDimensionValueException if {@code time} is not a valid
      * DateTime for this layer.
      */
-    FilenameAndTimeIndex findAndCheckFilenameAndTimeIndex(DateTime time)
+    public FilenameAndTimeIndex findAndCheckFilenameAndTimeIndex(DateTime time)
         throws InvalidDimensionValueException
     {
         // Find and check the time and elevation values. Indices of -1 will be

@@ -44,9 +44,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.geotoolkit.referencing.CRS;
 import org.joda.time.Chronology;
-import org.joda.time.Seconds;
-import org.joda.time.PeriodType;
-import org.joda.time.Duration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
@@ -92,9 +89,6 @@ public class WmsUtils
 
     private static final DateTimeFormatter ISO_DATE_TIME_FORMATTER =
         ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
-
-    private static final DateTimeFormatter ISO_DATE_TIME_NO_MILLIS_FORMATTER =
-        ISODateTimeFormat.dateTimeNoMillis().withZone(DateTimeZone.UTC);
 
     private static final DateTimeFormatter ISO_DATE_TIME_PARSER =
         ISODateTimeFormat.dateTimeParser().withZone(DateTimeZone.UTC);
@@ -143,32 +137,7 @@ public class WmsUtils
      */
     public static String dateTimeToISO8601(DateTime dateTime)
     {
-      if ((dateTime != null) && (dateTime.getMillisOfSecond() == 0)) {
-        return ISO_DATE_TIME_NO_MILLIS_FORMATTER.print(dateTime);
-      } else {
         return ISO_DATE_TIME_FORMATTER.print(dateTime);
-      }
-    }
-
-    public static String dateTimesToCapabilitiesString(List<DateTime> dates, boolean useTimes) {
-      if (useTimes == true) {
-        return getTimeStringForCapabilities(dates);
-      } else {
-        return dateTimesToList(dates);
-      }
-    }
-
-    /**
-     * Converts a list of DateTime objects to a list of ISO dates
-     */
-    public static String dateTimesToList(List<DateTime> dates)
-    {
-        StringBuilder returnString = new StringBuilder();
-        for (DateTime d : dates) {
-          returnString.append(dateTimeToISO8601(d));
-          returnString.append(",");
-        }
-        return returnString.substring(0,returnString.length() - 1).toString();
     }
 
     /**
@@ -365,8 +334,8 @@ public class WmsUtils
         else if (layer instanceof VectorLayer)
         {
             VectorLayer vecLayer = (VectorLayer)layer;
-            List<Float> eastDataSample = readDataSample(vecLayer.getEastwardComponent());
-            List<Float> northDataSample = readDataSample(vecLayer.getEastwardComponent());
+            List<Float> eastDataSample = readDataSample(vecLayer.getXComponent());
+            List<Float> northDataSample = readDataSample(vecLayer.getYComponent());
             List<Float> magnitudes = WmsUtils.getMagnitudes(eastDataSample, northDataSample);
             return Ranges.findMinMax(magnitudes);
         }
@@ -404,76 +373,90 @@ public class WmsUtils
      * ScalarLayers, by examining the layer Titles (usually CF standard names)
      * and looking for "eastward_X"/"northward_X" pairs.
      */
-    public static List<VectorLayer> findVectorLayers(Collection<? extends ScalarLayer> scalarLayers)
-    {
+    public static List<VectorLayer> findVectorLayers(Collection<? extends ScalarLayer> scalarLayers) {
         // This hashtable will store pairs of components in eastward-northward
         // order, keyed by the standard name for the vector quantity
         Map<String, ScalarLayer[]> components = new LinkedHashMap<String, ScalarLayer[]>();
-        for (ScalarLayer layer : scalarLayers)
-        {
-            if (layer.getTitle().contains("eastward"))
-            {
+        for (ScalarLayer layer : scalarLayers) {
+            if (layer.getTitle().contains("eastward")) {
                 String vectorKey = layer.getTitle().replaceFirst("eastward_", "");
                 // Look to see if we've already found the northward component
-                if (!components.containsKey(vectorKey))
-                {
+                if (!components.containsKey(vectorKey)) {
                     // We haven't found the northward component yet
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[0] = layer;
-            }
-            else if (layer.getTitle().contains("northward"))
-            {
+            } else if (layer.getTitle().contains("northward")) {
                 String vectorKey = layer.getTitle().replaceFirst("northward_", "");
                 // Look to see if we've already found the eastward component
-                if (!components.containsKey(vectorKey))
-                {
+                if (!components.containsKey(vectorKey)) {
                     // We haven't found the eastward component yet
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[1] = layer;
-            }
-            
-            //Same stuff for GRIB conventions (U-component -> eastward, V-component -> norhward)            
-            if (layer.getTitle().contains("u-component of ")){
-                String vectorKey = layer.getTitle().replaceFirst("u-component of ", "");
-                // Look to see if we've already found the northward component
-                if (!components.containsKey(vectorKey))
-                {
-                    // We haven't found the northward component yet
+            } else if (layer.getTitle().contains("u-") && layer.getTitle().contains("component of")) {
+                String vectorKey = layer.getTitle().replaceAll("u-", "").replaceAll("component of", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
-                components.get(vectorKey)[0] = layer;                
-            }else if(layer.getTitle().contains("v-component of ")){
-                String vectorKey = layer.getTitle().replaceFirst("v-component of ", "");
-                // Look to see if we've already found the eastward component
-                if (!components.containsKey(vectorKey))
-                {
-                    // We haven't found the eastward component yet
+                components.get(vectorKey)[0] = layer;
+            } else if (layer.getTitle().contains("v-") && layer.getTitle().contains("component of")) {
+                String vectorKey = layer.getTitle().replaceAll("v-", "").replaceAll("component of", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
-                components.get(vectorKey)[1] = layer;                
+                components.get(vectorKey)[1] = layer;
+            } else if (layer.getTitle().contains("_x_")) {
+                String vectorKey = layer.getTitle().replaceAll("_x_", "_").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[0] = layer;
+            } else if (layer.getTitle().contains("_y_")) {
+                String vectorKey = layer.getTitle().replaceAll("_y_", "_").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[1] = layer;
+            } else if (layer.getTitle().contains("Zonal ")) {
+                String vectorKey = layer.getTitle().replaceFirst("Zonal ", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[0] = layer;
+            } else if (layer.getTitle().contains("Meridional ")) {
+                String vectorKey = layer.getTitle().replaceFirst("Meridional ", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[1] = layer;
             }
-            
+                                                           
         }
 
         // Now add the vector quantities to the collection of Layer objects
         List<VectorLayer> vectorLayers = new ArrayList<VectorLayer>();
-        for (String key : components.keySet())
-        {
+        for (String key : components.keySet()) {
             ScalarLayer[] comps = components.get(key);
-            if (comps[0] != null && comps[1] != null)
-            {
-                // We've found both components.  Create a new Layer object
+            if (comps[0] != null && comps[1] != null) {
+                // We've found both components. Create a new Layer object
                 VectorLayer vec = new SimpleVectorLayer(key, comps[0], comps[1]);
                 vectorLayers.add(vec);
             }
         }
 
-        
-        
-        
-        
         return vectorLayers;
     }
 

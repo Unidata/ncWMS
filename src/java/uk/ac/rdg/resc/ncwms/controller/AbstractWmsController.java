@@ -46,21 +46,20 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.geotoolkit.geometry.GeneralDirectPosition;
-import org.geotoolkit.geometry.GeneralEnvelope;
 import org.geotoolkit.referencing.CRS;
+import org.geotoolkit.referencing.crs.DefaultGeographicCRS;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.ui.RectangleInsets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.joda.time.DateTime;
 import org.joda.time.chrono.ISOChronology;
-import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
 
@@ -408,7 +407,6 @@ public abstract class AbstractWmsController extends AbstractController {
         String mimeType = styleRequest.getImageFormat();
         // This throws an InvalidFormatException if the MIME type is not supported
         ImageFormat imageFormat = ImageFormat.get(mimeType);
-        float vectorScale = styleRequest.getVectorScale();
 
         GetMapDataRequest dr = getMapRequest.getDataRequest();
 
@@ -426,33 +424,7 @@ public abstract class AbstractWmsController extends AbstractController {
 
         // Get the grid onto which the data will be projected
         RegularGrid grid = WmsUtils.getImageGrid(dr);
-        
-        CoordinateReferenceSystem sourcecs = WmsUtils.getCrs(dr.getCrsCode());
-        CoordinateReferenceSystem wgs84cs = WmsUtils.getCrs("CRS:84");
-        GeneralEnvelope bbox = new GeneralEnvelope((Envelope)grid.getExtent());
-        bbox = (GeneralEnvelope) CRS.transform(bbox, wgs84cs);
-        
-        double[] urc = bbox.getUpperCorner().getCoordinate();
-        double[] llc = bbox.getLowerCorner().getCoordinate();
-        // Assume grid does not cross equator.
-        int equator_y_index = dr.getHeight();
-        
-        if (llc[1] < 0) {
-          // Dataset is 100% in the southern hemisphere or crosses the equator
-          GeneralDirectPosition gdp = new GeneralDirectPosition(wgs84cs);
-          gdp.setLocation(llc[0],0);
-          GeneralEnvelope yaxisbox = (GeneralEnvelope) CRS.transform(new GeneralEnvelope(gdp,gdp),sourcecs);
-          HorizontalPosition hp = new HorizontalPositionImpl(yaxisbox.getUpperCorner().getCoordinate()[0], yaxisbox.getUpperCorner().getCoordinate()[1], sourcecs);
-          GridCoordinates gc = grid.findNearestGridPoint(hp);
-          if (gc != null) {
-            // Crosses the Equator
-            equator_y_index = dr.getHeight() - gc.getCoordinateValue(1);
-          } else {
-            // Does not cross the equator
-            equator_y_index = 0;
-          }
-        }
-        
+
         // Create an object that will turn data into BufferedImages
         Range<Float> scaleRange = styleRequest.getColorScaleRange();
         if (scaleRange == null) scaleRange = layer.getApproxValueRange();
@@ -470,11 +442,13 @@ public abstract class AbstractWmsController extends AbstractController {
             String styleType = styleStrEls[0];
             if (styleType.equalsIgnoreCase("boxfill")) style = ImageProducer.Style.BOXFILL;
             else if (styleType.equalsIgnoreCase("vector")) style = ImageProducer.Style.VECTOR;
+            //else if (styleType.equalsIgnoreCase("arrows")) style = ImageProducer.Style.ARROWS;
+            else if (styleType.equalsIgnoreCase("barb")) style = ImageProducer.Style.BARB;
+            //else if (styleType.equalsIgnoreCase("contour")) style = ImageProducer.Style.CONTOUR;
             else if (styleType.equalsIgnoreCase("fancyvec")) style = ImageProducer.Style.FANCYVEC;
             else if (styleType.equalsIgnoreCase("linevec")) style = ImageProducer.Style.LINEVEC;
             else if (styleType.equalsIgnoreCase("stumpvec")) style = ImageProducer.Style.STUMPVEC;
-            else if (styleType.equalsIgnoreCase("trivec")) style = ImageProducer.Style.TRIVEC;
-            else if (styleType.equalsIgnoreCase("barb")) style = ImageProducer.Style.BARB;
+            else if (styleType.equalsIgnoreCase("trivec")) style = ImageProducer.Style.TRIVEC;           
             else throw new StyleNotDefinedException("The style " + styles[0] +
                 " is not supported by this server");
 
@@ -495,13 +469,13 @@ public abstract class AbstractWmsController extends AbstractController {
             .palette(palette)
             .colourScaleRange(scaleRange)
             .backgroundColour(styleRequest.getBackgroundColour())
+            .lowOutOfRangeColour(styleRequest.getLowOutOfRangeColour())
+            .highOutOfRangeColour(styleRequest.getHighOutOfRangeColour())
             .transparent(styleRequest.isTransparent())
             .logarithmic(logScale)
             .opacity(styleRequest.getOpacity())
             .numColourBands(styleRequest.getNumColourBands())
-            .vectorScale(vectorScale)
-            .units(layer.getUnits())
-            .equator_y_index(equator_y_index)
+            .numContours(styleRequest.getNumContours())
             .build();
         // Need to make sure that the images will be compatible with the
         // requested image format
@@ -542,9 +516,13 @@ public abstract class AbstractWmsController extends AbstractController {
                 imageProducer.addFrame(data, tValueStr);
             } else if (layer instanceof VectorLayer) {
                 VectorLayer vecLayer = (VectorLayer)layer;
-                List<Float> eastData  = this.readDataGrid(vecLayer.getEastwardComponent(),  timeValue, zValue, grid, usageLogEntry);
-                List<Float> northData = this.readDataGrid(vecLayer.getNorthwardComponent(), timeValue, zValue, grid, usageLogEntry);
-                imageProducer.addFrame(eastData, northData, tValueStr);
+                
+                List<Float>[] xyVals = vecLayer.readXYComponents(timeValue, zValue, grid);
+                
+                /*
+                 * Now add the image frame
+                 */
+                imageProducer.addFrame(xyVals[0], xyVals[1], tValueStr);
             } else {
                 throw new IllegalStateException("Unrecognized layer type");
             }
@@ -667,8 +645,8 @@ public abstract class AbstractWmsController extends AbstractController {
             }
         } else if (layer instanceof VectorLayer) {
             VectorLayer vecLayer = (VectorLayer)layer;
-            ScalarLayer eastComp = vecLayer.getEastwardComponent();
-            ScalarLayer northComp = vecLayer.getNorthwardComponent();
+            ScalarLayer eastComp = vecLayer.getXComponent();
+            ScalarLayer northComp = vecLayer.getYComponent();
             if (tValues.isEmpty()) {
                 // The layer has no time axis
                 Float eastVal = eastComp.readSinglePoint(null, zValue, pos);
@@ -811,10 +789,6 @@ public abstract class AbstractWmsController extends AbstractController {
         usageLogEntry.setOutputFormat(outputFormat);
         usageLogEntry.setWmsOperation("GetTransect");
 
-        // Get the required coordinate reference system, forcing longitude-first
-        // axis order.
-        final CoordinateReferenceSystem crs = WmsUtils.getCrs(crsCode);
-
         // Parse the line string, which is in the form "x1 y1, x2 y2, x3 y3"
         final LineString transect = new LineString(lineString, crsCode, params.getWmsVersion());
         log.debug("Got {} control points", transect.getControlPoints().size());
@@ -829,8 +803,8 @@ public abstract class AbstractWmsController extends AbstractController {
             transectData = ((ScalarLayer)layer).readHorizontalPoints(tValue, zValue, transectDomain);
         } else if (layer instanceof VectorLayer) {
             VectorLayer vecLayer = (VectorLayer)layer;
-            List<Float> tsDataEast  = vecLayer.getEastwardComponent() .readHorizontalPoints(tValue, zValue, transectDomain);
-            List<Float> tsDataNorth = vecLayer.getNorthwardComponent().readHorizontalPoints(tValue, zValue, transectDomain);
+            List<Float> tsDataEast  = vecLayer.getXComponent() .readHorizontalPoints(tValue, zValue, transectDomain);
+            List<Float> tsDataNorth = vecLayer.getYComponent().readHorizontalPoints(tValue, zValue, transectDomain);
             transectData = WmsUtils.getMagnitudes(tsDataEast, tsDataNorth);
         } else {
             throw new IllegalStateException("Unrecognized layer type");
@@ -970,9 +944,9 @@ public abstract class AbstractWmsController extends AbstractController {
         }
         else if (layer instanceof VectorLayer) {
              VectorLayer vecLayer = (VectorLayer)layer;
-             List<List<Float>> sectionDataEast  = vecLayer.getEastwardComponent()
+             List<List<Float>> sectionDataEast  = vecLayer.getXComponent()
                  .readVerticalSection(tValue, layer.getElevationValues(), domain);
-             List<List<Float>> sectionDataNorth = vecLayer.getNorthwardComponent()
+             List<List<Float>> sectionDataNorth = vecLayer.getYComponent()
                  .readVerticalSection(tValue, layer.getElevationValues(), domain);
              // Calculate magnitudes and filter out null values
              int i = 0;
@@ -1043,9 +1017,9 @@ public abstract class AbstractWmsController extends AbstractController {
         }
         else if (layer instanceof VectorLayer) {
              VectorLayer vecLayer = (VectorLayer)layer;
-             List<List<Float>> sectionDataEast  = vecLayer.getEastwardComponent()
+             List<List<Float>> sectionDataEast  = vecLayer.getXComponent()
                  .readVerticalSection(tValue, layer.getElevationValues(), transectDomain);
-             List<List<Float>> sectionDataNorth = vecLayer.getNorthwardComponent()
+             List<List<Float>> sectionDataNorth = vecLayer.getYComponent()
                  .readVerticalSection(tValue, layer.getElevationValues(), transectDomain);
              // Calculate magnitudes and filter out all-null levels
              int i = 0;
@@ -1111,10 +1085,6 @@ public abstract class AbstractWmsController extends AbstractController {
         }
         usageLogEntry.setOutputFormat(outputFormat);
         usageLogEntry.setWmsOperation("GetVerticalSection");
-
-        // Get the required coordinate reference system, forcing longitude-first
-        // axis order.
-        final CoordinateReferenceSystem crs = WmsUtils.getCrs(crsCode);
 
         // Parse the line string, which is in the form "x1 y1, x2 y2, x3 y3"
         final LineString lineString = new LineString(lineStr, crsCode, params.getMandatoryWmsVersion());

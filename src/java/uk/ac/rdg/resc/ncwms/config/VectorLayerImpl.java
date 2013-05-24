@@ -28,11 +28,17 @@
 
 package uk.ac.rdg.resc.ncwms.config;
 
+import java.io.IOException;
 import java.util.List;
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
+
 import uk.ac.rdg.resc.edal.coverage.grid.HorizontalGrid;
+import uk.ac.rdg.resc.edal.coverage.grid.RegularGrid;
+import uk.ac.rdg.resc.ncwms.exceptions.InvalidDimensionValueException;
 import uk.ac.rdg.resc.ncwms.graphics.ColorPalette;
 import uk.ac.rdg.resc.edal.util.Range;
 import uk.ac.rdg.resc.ncwms.wms.ScalarLayer;
@@ -112,13 +118,20 @@ final class VectorLayerImpl implements VectorLayer
     /////////////////////////
 
     @Override
-    public ScalarLayer getEastwardComponent() {
-       return this.wrappedLayer.getEastwardComponent();
+    public ScalarLayer getXComponent() {
+       return this.wrappedLayer.getXComponent();
     }
 
     @Override
-    public ScalarLayer getNorthwardComponent() {
-        return this.wrappedLayer.getNorthwardComponent();
+    public ScalarLayer getYComponent() {
+        return this.wrappedLayer.getYComponent();
+    }
+    
+    @Override
+    public List<Float>[] readXYComponents(DateTime dateTime, double elevation, RegularGrid grid)
+            throws InvalidDimensionValueException, IOException, FactoryException,
+            TransformException {
+        return wrappedLayer.readXYComponents(dateTime, elevation, grid);
     }
 
     @Override
@@ -135,9 +148,6 @@ final class VectorLayerImpl implements VectorLayer
 
     @Override
     public boolean isQueryable()  { return this.wrappedLayer.isQueryable(); }
-
-    @Override
-    public boolean isIntervalTime()  { return this.wrappedLayer.isIntervalTime(); }
 
     @Override
     public GeographicBoundingBox getGeographicBoundingBox() {
@@ -193,5 +203,4 @@ final class VectorLayerImpl implements VectorLayer
     public boolean isElevationPressure() {
         return this.wrappedLayer.isElevationPressure();
     }
-
 }

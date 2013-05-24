@@ -98,23 +98,7 @@ public abstract class AbstractRectilinearGrid extends AbstractHorizontalGrid imp
         return new GridCoordinatesImpl(i, j);
     }
 
-    @Override
-    public GridCoordinates findNearestGridPoint(HorizontalPosition pos) {
-        pos = Utils.transformPosition(pos, this.getCoordinateReferenceSystem());
-        return this.findNearestGridPoint(pos.getX(), pos.getY());
-    }
-
-    @Override
-    public List<GridCoordinates> findNearestGridPoints(Domain<HorizontalPosition> domain) {
-        List<HorizontalPosition> posList = Utils.transformDomain(domain, this.getCoordinateReferenceSystem());
-        List<GridCoordinates> gridCoords = CollectionUtils.newArrayList();
-        for (HorizontalPosition pos : posList) {
-            gridCoords.add(this.findNearestGridPoint(pos.getX(), pos.getY()));
-        }
-        return Collections.unmodifiableList(gridCoords);
-    }
-
-    private GridCoordinates findNearestGridPoint(double x, double y) {
+    protected GridCoordinates findNearestGridPoint(double x, double y) {
         int i = this.getXAxis().getNearestCoordinateIndex(x);
         int j = this.getYAxis().getNearestCoordinateIndex(y);
         if (i < 0 || j < 0) return null;

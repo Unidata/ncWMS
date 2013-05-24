@@ -123,10 +123,12 @@ public final class Utils {
             throw new NullPointerException("Target CRS cannot be null");
         }
         // CRS.findMathTransform() caches recently-used transform objects so
-        // we should incur no large penalty for multiple invocations
+        // we should incur no large penalty for multiple invocations.
+        // We use "lenient" transforms, so Bursa-Wolf parameters are ignored and
+        // datum shift errors may occur
         try
         {
-            MathTransform transform = CRS.findMathTransform(sourceCrs, targetCrs);
+            MathTransform transform = CRS.findMathTransform(sourceCrs, targetCrs, true);
             if (transform.isIdentity()) return pos;
             double[] point = new double[]{pos.getX(), pos.getY()};
             transform.transform(point, 0, point, 0, 1);
@@ -171,9 +173,11 @@ public final class Utils {
 
         // CRS.findMathTransform() caches recently-used transform objects so
         // we should incur no large penalty for multiple invocations
+        // We use "lenient" transforms, so Bursa-Wolf parameters are ignored and
+        // datum shift errors may occur
         try
         {
-            MathTransform transform = CRS.findMathTransform(sourceCrs, targetCrs);
+            MathTransform transform = CRS.findMathTransform(sourceCrs, targetCrs, true);
             // Convert the points from the domain into an array of doubles so
             // that we can transform them in a single operation
             double[] points = new double[domainObjects.size() * 2];
@@ -188,7 +192,7 @@ public final class Utils {
             transform.transform(points, 0, points, 0, domainObjects.size());
 
             // Create a new list of horizontal positions in the new CRS
-            List<HorizontalPosition> posList = CollectionUtils.newArrayList();
+            List<HorizontalPosition> posList = CollectionUtils.newArrayList(domainObjects.size());
             for (i = 0; i < points.length; i += 2)
             {
                 posList.add(new HorizontalPositionImpl(points[i], points[i+1], targetCrs));
@@ -223,9 +227,11 @@ public final class Utils {
         }
         // CRS.findMathTransform() caches recently-used transform objects so
         // we should incur no large penalty for multiple invocations
+        // We use "lenient" transforms, so Bursa-Wolf parameters are ignored and
+        // datum shift errors may occur
         try
         {
-            MathTransform transform = CRS.findMathTransform(sourceCrs, DefaultGeographicCRS.WGS84);
+            MathTransform transform = CRS.findMathTransform(sourceCrs, DefaultGeographicCRS.WGS84, true);
             if (transform.isIdentity()) return new LonLatPositionImpl(pos.getX(), pos.getY());
             double[] point = new double[]{pos.getX(), pos.getY()};
             transform.transform(point, 0, point, 0, 1);
@@ -247,7 +253,7 @@ public final class Utils {
     {
         try
         {
-            return CRS.findMathTransform(crs, DefaultGeographicCRS.WGS84).isIdentity();
+            return CRS.findMathTransform(crs, DefaultGeographicCRS.WGS84, true).isIdentity();
         }
         catch(FactoryException fe)
         {

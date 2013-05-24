@@ -42,6 +42,7 @@ import ucar.nc2.dt.GridCoordSystem;
 import ucar.nc2.dt.GridDatatype;
 import uk.ac.rdg.resc.edal.coverage.grid.HorizontalGrid;
 import uk.ac.rdg.resc.edal.coverage.grid.impl.GridCoordinatesImpl;
+import uk.ac.rdg.resc.edal.geometry.impl.LonLatPositionImpl;
 import uk.ac.rdg.resc.edal.util.CollectionUtils;
 import uk.ac.rdg.resc.edal.util.Utils;
 
@@ -154,12 +155,9 @@ final class PRTreeGrid extends AbstractCurvilinearGrid
      * lat-lon point is not contained within this layer's domain.
      */
     @Override
-    public GridCoordinates findNearestGridPoint(HorizontalPosition pos)
+    protected GridCoordinates findNearestGridPoint(double lon, double lat)
     {
-        LonLatPosition lonLatPos = Utils.transformToWgs84LonLat(pos);
-        double lon = lonLatPos.getLongitude();
-        double lat = lonLatPos.getLatitude();
-
+        LonLatPosition lonLatPos = new LonLatPositionImpl(lon, lat);
         // Find all cells that intersect this point
         Iterable<CurvilinearGrid.Cell> cells = this.rtree.find(lon, lat, lon, lat);
         for (CurvilinearGrid.Cell cell : cells)
