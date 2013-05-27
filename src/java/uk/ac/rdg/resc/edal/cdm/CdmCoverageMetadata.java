@@ -60,7 +60,8 @@ final class CdmCoverageMetadata implements CoverageMetadata
     public CdmCoverageMetadata(GridDatatype grid, GeographicBoundingBox bbox,
             HorizontalGrid horizGrid, List<DateTime> timesteps, ElevationAxis zAxis)
     {
-        this.id = grid.getName();
+        this.id = grid.getFullName();
+    	//this.id = grid.getShortName();
         this.title = CdmUtils.getVariableTitle(grid.getVariable());
         this.description = grid.getDescription();
         this.units = grid.getUnitsString();

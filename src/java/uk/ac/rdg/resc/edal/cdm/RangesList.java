@@ -82,10 +82,15 @@ final class RangesList
 //        String zDimName = grid.getZDimension() == null ? null : grid.getZDimension().getName();
 //        String tDimName = grid.getTimeDimension() == null ? null : grid.getTimeDimension().getName();
         
-        String xDimName = grid.getXDimension() == null ? null : grid.getXDimension().getFullName();
-        String yDimName = grid.getYDimension() == null ? null : grid.getYDimension().getFullName();
-        String zDimName = grid.getZDimension() == null ? null : grid.getZDimension().getFullName();
-        String tDimName = grid.getTimeDimension() == null ? null : grid.getTimeDimension().getFullName();        
+//        String xDimName = grid.getXDimension() == null ? null : grid.getXDimension().getFullName();
+//        String yDimName = grid.getYDimension() == null ? null : grid.getYDimension().getFullName();
+//        String zDimName = grid.getZDimension() == null ? null : grid.getZDimension().getFullName();
+//        String tDimName = grid.getTimeDimension() == null ? null : grid.getTimeDimension().getFullName();
+        
+        String xDimName = grid.getXDimension() == null ? null : grid.getXDimension().getShortName();
+        String yDimName = grid.getYDimension() == null ? null : grid.getYDimension().getShortName();
+        String zDimName = grid.getZDimension() == null ? null : grid.getZDimension().getShortName();
+        String tDimName = grid.getTimeDimension() == null ? null : grid.getTimeDimension().getShortName();        
 
         // The dimensions in this list are in physical order
         List<Dimension> dims = var.getDimensions();

@@ -219,7 +219,7 @@ public final class CdmUtils
     {
         if (axis == null) throw new NullPointerException();
         //String name = axis.getName();
-        String name = axis.getFullName();
+        String name = axis.getShortName();
         // TODO: generate coordinate system axes if appropriate
         if (axis.isRegular())
         {
