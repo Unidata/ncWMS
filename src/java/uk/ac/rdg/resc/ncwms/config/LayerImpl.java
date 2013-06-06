@@ -102,6 +102,9 @@ final class LayerImpl extends AbstractTimeAggregatedLayer
         return this.dataset.isQueryable();
     }
 
+    @Override
+    public boolean isIntervalTime() { return this.dataset.isIntervalTime(); }
+
     /**
      * Return true if we are to use logarithmic colour scaling by default for
      * this layer.
