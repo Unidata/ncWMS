@@ -60,10 +60,6 @@ public class NcwmsCredentialsProvider implements CredentialsProvider
      */
     public void init()
     {
-        HttpClient client = ucar.nc2.util.net.HttpClientManager.init(this, null);
-        opendap.dap.DConnect2.setHttpClient(client);
-        ucar.unidata.io.http.HTTPRandomAccessFile.setHttpClient(client);
-        logger.debug("NcwmsCredentialsProvider initialized");
     }
     
     public void addCredentials(String host, int port, String usernamePassword)
