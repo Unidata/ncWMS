@@ -37,17 +37,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.geotoolkit.referencing.CRS;
-import org.geotoolkit.referencing.crs.DefaultGeographicCRS;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -57,16 +58,19 @@ import org.jfree.ui.RectangleInsets;
 import org.joda.time.DateTime;
 import org.joda.time.chrono.ISOChronology;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
 
+import uk.ac.rdg.resc.edal.cdm.PixelMap;
+import uk.ac.rdg.resc.edal.cdm.PixelMap.PixelMapEntry;
 import uk.ac.rdg.resc.edal.coverage.domain.Domain;
 import uk.ac.rdg.resc.edal.coverage.domain.impl.HorizontalDomain;
 import uk.ac.rdg.resc.edal.coverage.grid.GridCoordinates;
 import uk.ac.rdg.resc.edal.coverage.grid.HorizontalGrid;
+import uk.ac.rdg.resc.edal.coverage.grid.RectilinearGrid;
+import uk.ac.rdg.resc.edal.coverage.grid.ReferenceableAxis;
 import uk.ac.rdg.resc.edal.coverage.grid.RegularGrid;
 import uk.ac.rdg.resc.edal.geometry.HorizontalPosition;
 import uk.ac.rdg.resc.edal.geometry.LonLatPosition;
@@ -83,6 +87,7 @@ import uk.ac.rdg.resc.ncwms.exceptions.LayerNotDefinedException;
 import uk.ac.rdg.resc.ncwms.exceptions.StyleNotDefinedException;
 import uk.ac.rdg.resc.ncwms.exceptions.Wms1_1_1Exception;
 import uk.ac.rdg.resc.ncwms.exceptions.WmsException;
+import uk.ac.rdg.resc.ncwms.graphics.BilinearInterpolator;
 import uk.ac.rdg.resc.ncwms.graphics.ColorPalette;
 import uk.ac.rdg.resc.ncwms.graphics.ImageFormat;
 import uk.ac.rdg.resc.ncwms.graphics.ImageProducer;
@@ -435,6 +440,7 @@ public abstract class AbstractWmsController extends AbstractController {
                 : ImageProducer.Style.BOXFILL;
         ColorPalette palette = layer.getDefaultColorPalette();
         String[] styles = styleRequest.getStyles();
+        boolean smoothed = false;
         if (styles.length > 0) {
             String[] styleStrEls = styles[0].split("/");
 
@@ -444,7 +450,7 @@ public abstract class AbstractWmsController extends AbstractController {
             else if (styleType.equalsIgnoreCase("vector")) style = ImageProducer.Style.VECTOR;
             //else if (styleType.equalsIgnoreCase("arrows")) style = ImageProducer.Style.ARROWS;
             else if (styleType.equalsIgnoreCase("barb")) style = ImageProducer.Style.BARB;
-            //else if (styleType.equalsIgnoreCase("contour")) style = ImageProducer.Style.CONTOUR;
+            else if (styleType.equalsIgnoreCase("contour")) style = ImageProducer.Style.CONTOUR;
             else if (styleType.equalsIgnoreCase("fancyvec")) style = ImageProducer.Style.FANCYVEC;
             else if (styleType.equalsIgnoreCase("linevec")) style = ImageProducer.Style.LINEVEC;
             else if (styleType.equalsIgnoreCase("stumpvec")) style = ImageProducer.Style.STUMPVEC;
@@ -512,7 +518,7 @@ public abstract class AbstractWmsController extends AbstractController {
             if (layer instanceof ScalarLayer) {
                 // Note that if the layer doesn't have a time axis, timeValue==null but this
                 // will be ignored by readHorizontalPoints()
-                List<Float> data = this.readDataGrid((ScalarLayer)layer, timeValue, zValue, grid, usageLogEntry);
+                List<Float> data = this.readDataGrid((ScalarLayer)layer, timeValue, zValue, grid, usageLogEntry, smoothed);
                 imageProducer.addFrame(data, tValueStr);
             } else if (layer instanceof VectorLayer) {
                 VectorLayer vecLayer = (VectorLayer)layer;
@@ -1349,7 +1355,7 @@ public abstract class AbstractWmsController extends AbstractController {
      * this does not match a valid {@link Layer#getElevationValues() elevation value}
      * in this Layer, this method will throw an {@link InvalidDimensionValueException}.
      * (If this Layer has no elevation axis, this parameter will be ignored.)
-     * @param grid The grid of points, one point per pixel in the image that will
+     * @param imageGrid The grid of points, one point per pixel in the image that will
      * be created in the GetMap operation
      * @param usageLogEntry
      * @return a List of data values, one for each point in
@@ -1359,10 +1365,115 @@ public abstract class AbstractWmsController extends AbstractController {
      * @throws IOException if there was an error reading from the data source
      */
     protected List<Float> readDataGrid(ScalarLayer layer, DateTime dateTime,
-        double elevation, RegularGrid grid, UsageLogEntry usageLogEntry)
+        double elevation, RegularGrid imageGrid, UsageLogEntry usageLogEntry, boolean smoothed)
         throws InvalidDimensionValueException, IOException
     {
-        return layer.readHorizontalPoints(dateTime, elevation, grid);
+        if(!smoothed) {
+            return layer.readHorizontalPoints(dateTime, elevation, imageGrid);
+        } else {
+            int width = imageGrid.getXAxis().getSize();
+            int height = imageGrid.getYAxis().getSize();
+            
+            RectilinearGrid dataGrid;
+            if(!(layer.getHorizontalGrid() instanceof RectilinearGrid)) {
+                return layer.readHorizontalPoints(dateTime, elevation, imageGrid);
+            } else {
+                dataGrid = (RectilinearGrid) layer.getHorizontalGrid();
+            }
+            PixelMap pixelMap = new PixelMap(dataGrid, imageGrid);
+            /*
+             * Check whether it is worth smoothing this data
+             */
+            int imageSize = width * height;
+            if(pixelMap.getNumUniqueIJPairs() >= imageSize || pixelMap.getNumUniqueIJPairs() == 0) {
+                /*
+                 * We don't need to smooth the data
+                 */
+                return layer.readHorizontalPoints(dateTime, elevation, imageGrid);
+            }
+            
+            ReferenceableAxis xAxis = dataGrid.getXAxis();
+            ReferenceableAxis yAxis = dataGrid.getYAxis();
+            SortedSet<Double> xCoords = new TreeSet<Double>();
+            SortedSet<Double> yCoords = new TreeSet<Double>();
+            double minX = imageGrid.getXAxis().getCoordinateValue(0);
+           
+            /*
+             * Loop through all points on the data grid which are needed, and add
+             * them to sorted sets
+             */
+            Iterator<PixelMapEntry> iterator = pixelMap.iterator();
+            while(iterator.hasNext()) {
+                PixelMapEntry pme = iterator.next();
+                xCoords.add(Utils.getNextEquivalentLongitude(minX,
+                        xAxis.getCoordinateValue(pme.getSourceGridIIndex())));
+                yCoords.add(yAxis.getCoordinateValue(pme.getSourceGridJIndex()));
+            }
+            Float[][] data = new Float[xCoords.size()][yCoords.size()];
+            final CoordinateReferenceSystem crs = layer.getHorizontalGrid().getCoordinateReferenceSystem();
+            final List<HorizontalPosition> pointsToRead = new ArrayList<HorizontalPosition>();
+            
+            /*
+             * Loop through required coords and add to a list to read
+             */
+            for(Double x : xCoords) {
+                for(Double y : yCoords) {
+                    pointsToRead.add(new HorizontalPositionImpl(x, y, crs));
+                }               
+            }
+            /*
+             * Use the list to read all required points at once
+             */
+            List<Float> points;
+            try {
+                points = layer.readHorizontalPoints(dateTime, elevation, new Domain<HorizontalPosition>() {
+                    @Override
+                    public CoordinateReferenceSystem getCoordinateReferenceSystem() {
+                        return crs;
+                    }
+                    @Override
+                    public List<HorizontalPosition> getDomainObjects() {
+                        return pointsToRead;
+                    }
+                    @Override
+                    public long size() {
+                        return pointsToRead.size();
+                    }
+                });
+            } catch (InvalidDimensionValueException e) {
+                e.printStackTrace();
+                throw new IllegalArgumentException("Problem reading data");
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new IllegalArgumentException("Problem reading data");
+            }
+            /*
+             * Now populate the data array
+             */
+            int index = 0;
+            for (int i = 0; i < xCoords.size(); i++) {
+                for (int j = 0; j < yCoords.size(); j++) {
+                    data[i][j] = points.get(index++);
+                }
+            }
+           
+            /*
+             * All data reading is done at this point. We now interpolate onto each
+             * image point, using a BilinearInterpolator
+             */
+            BilinearInterpolator interpolator = new BilinearInterpolator(xCoords, yCoords, data);
+               
+            List<Float> retData = new ArrayList<Float>();
+           
+            for(int i=0;i<width;i++){
+                double x = imageGrid.getXAxis().getCoordinateValue(i);
+                for(int j=0;j<height;j++){
+                    double y = imageGrid.getYAxis().getCoordinateValue(j);
+                    retData.add(interpolator.getValue(x, y));
+                }
+            }
+            return retData;
+        }
     }
 
     /**

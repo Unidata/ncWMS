@@ -38,9 +38,9 @@ response.setDateHeader ("Expires", 0); //prevents caching at the proxy server
 
     <json:property name="numColorBands" value="${layer.defaultNumColorBands}"/>
 
-    <c:set var="styles" value="boxfill"/>
+    <c:set var="styles" value="boxfill,contour"/>
     <c:if test="${utils:isVectorLayer(layer)}">
-        <c:set var="styles" value="vector,boxfill"/>
+        <c:set var="styles" value="vector,arrows,boxfill,contour"/>
     </c:if>
     <json:array name="supportedStyles" items="${styles}"/>
 

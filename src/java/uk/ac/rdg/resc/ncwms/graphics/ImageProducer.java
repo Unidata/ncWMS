@@ -351,8 +351,21 @@ public final class ImageProducer
         CartesianRenderer renderer = CartesianRenderer.getRenderer(cg, sgtGrid, attr);
 
         BufferedImage image = new BufferedImage(picWidth, picHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics g = image.getGraphics();
+        Graphics2D g = image.createGraphics();
         renderer.draw(g);
+        
+//        int transpPixel = getColorModel().getRGB(0);
+//        System.out.println(transpPixel);
+//        for(int i=0; i<image.getWidth();i++) {
+//            for(int j=0; j<image.getHeight();j++) {
+//                int rgb = image.getRGB(i, j);
+//                System.out.println("rgb:"+rgb);
+//                if(rgb == transpPixel) {
+//                    image.setRGB(i, j, 0);
+//                }
+//            }            
+//        }
+//        
         return image;
     }
 

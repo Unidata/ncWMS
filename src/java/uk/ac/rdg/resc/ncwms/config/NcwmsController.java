@@ -28,15 +28,30 @@
 package uk.ac.rdg.resc.ncwms.config;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.joda.time.DateTime;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.springframework.web.servlet.ModelAndView;
+
+import uk.ac.rdg.resc.edal.cdm.PixelMap;
+import uk.ac.rdg.resc.edal.cdm.PixelMap.PixelMapEntry;
+import uk.ac.rdg.resc.edal.coverage.domain.Domain;
+import uk.ac.rdg.resc.edal.coverage.grid.RectilinearGrid;
+import uk.ac.rdg.resc.edal.coverage.grid.ReferenceableAxis;
 import uk.ac.rdg.resc.edal.coverage.grid.RegularGrid;
+import uk.ac.rdg.resc.edal.geometry.HorizontalPosition;
+import uk.ac.rdg.resc.edal.geometry.impl.HorizontalPositionImpl;
+import uk.ac.rdg.resc.edal.util.Utils;
 import uk.ac.rdg.resc.ncwms.cache.TileCache;
 import uk.ac.rdg.resc.ncwms.cache.TileCacheKey;
 import uk.ac.rdg.resc.ncwms.controller.AbstractWmsController;
@@ -45,6 +60,7 @@ import uk.ac.rdg.resc.ncwms.exceptions.InvalidDimensionValueException;
 import uk.ac.rdg.resc.ncwms.exceptions.LayerNotDefinedException;
 import uk.ac.rdg.resc.ncwms.exceptions.OperationNotSupportedException;
 import uk.ac.rdg.resc.ncwms.exceptions.WmsException;
+import uk.ac.rdg.resc.ncwms.graphics.BilinearInterpolator;
 import uk.ac.rdg.resc.ncwms.usagelog.UsageLogEntry;
 import uk.ac.rdg.resc.ncwms.wms.Dataset;
 import uk.ac.rdg.resc.ncwms.wms.Layer;
@@ -244,7 +260,7 @@ public final class NcwmsController extends AbstractWmsController
      */
     @Override
     protected List<Float> readDataGrid(ScalarLayer layer, DateTime dateTime,
-        double elevation, RegularGrid grid, UsageLogEntry usageLogEntry)
+        double elevation, RegularGrid grid, UsageLogEntry usageLogEntry, boolean smoothed)
         throws InvalidDimensionValueException, IOException
     {
         // We know that this Config object only returns LayerImpl objects
@@ -277,12 +293,128 @@ public final class NcwmsController extends AbstractWmsController
             // the source data.
             // We call layerImpl.readHorizDomain() directly to save repeating
             // the call to findAndCheckFilenameAndTimeIndex().
-            data = layerImpl.readHorizontalDomain(fti, zIndex, grid);
+            if(smoothed) {
+                data = readSmoothedDataGrid(layerImpl, dateTime, elevation, grid, usageLogEntry);
+            } else {
+                data = layerImpl.readHorizontalDomain(fti, zIndex, grid);
+            }
             // Put the data in the tile cache
             if (cacheEnabled) this.tileCache.put(key, data);
         }
 
         return data;
+    }
+    
+    private List<Float> readSmoothedDataGrid(ScalarLayer layer, DateTime dateTime,
+            double elevation, RegularGrid imageGrid, UsageLogEntry usageLogEntry)
+            throws InvalidDimensionValueException, IOException {
+        int width = imageGrid.getXAxis().getSize();
+        int height = imageGrid.getYAxis().getSize();
+
+        RectilinearGrid dataGrid;
+        if (!(layer.getHorizontalGrid() instanceof RectilinearGrid)) {
+            return layer.readHorizontalPoints(dateTime, elevation, imageGrid);
+        } else {
+            dataGrid = (RectilinearGrid) layer.getHorizontalGrid();
+        }
+        PixelMap pixelMap = new PixelMap(dataGrid, imageGrid);
+        /*
+         * Check whether it is worth smoothing this data
+         */
+        int imageSize = width * height;
+        if (pixelMap.getNumUniqueIJPairs() >= imageSize || pixelMap.getNumUniqueIJPairs() == 0) {
+            /*
+             * We don't need to smooth the data
+             */
+            return layer.readHorizontalPoints(dateTime, elevation, imageGrid);
+        }
+
+        ReferenceableAxis xAxis = dataGrid.getXAxis();
+        ReferenceableAxis yAxis = dataGrid.getYAxis();
+        SortedSet<Double> xCoords = new TreeSet<Double>();
+        SortedSet<Double> yCoords = new TreeSet<Double>();
+        double minX = imageGrid.getXAxis().getCoordinateValue(0);
+
+        /*
+         * Loop through all points on the data grid which are needed, and add
+         * them to sorted sets
+         */
+        Iterator<PixelMapEntry> iterator = pixelMap.iterator();
+        while (iterator.hasNext()) {
+            PixelMapEntry pme = iterator.next();
+            xCoords.add(Utils.getNextEquivalentLongitude(minX,
+                    xAxis.getCoordinateValue(pme.getSourceGridIIndex())));
+            yCoords.add(yAxis.getCoordinateValue(pme.getSourceGridJIndex()));
+        }
+        Float[][] data = new Float[xCoords.size()][yCoords.size()];
+        final CoordinateReferenceSystem crs = layer.getHorizontalGrid()
+                .getCoordinateReferenceSystem();
+        final List<HorizontalPosition> pointsToRead = new ArrayList<HorizontalPosition>();
+
+        /*
+         * Loop through required coords and add to a list to read
+         */
+        for (Double x : xCoords) {
+            for (Double y : yCoords) {
+                pointsToRead.add(new HorizontalPositionImpl(x, y, crs));
+            }
+        }
+        /*
+         * Use the list to read all required points at once
+         */
+        List<Float> points;
+        try {
+            points = layer.readHorizontalPoints(dateTime, elevation,
+                    new Domain<HorizontalPosition>() {
+                        @Override
+                        public CoordinateReferenceSystem getCoordinateReferenceSystem() {
+                            return crs;
+                        }
+
+                        @Override
+                        public List<HorizontalPosition> getDomainObjects() {
+                            return pointsToRead;
+                        }
+
+                        @Override
+                        public long size() {
+                            return pointsToRead.size();
+                        }
+                    });
+        } catch (InvalidDimensionValueException e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException("Problem reading data");
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException("Problem reading data");
+        }
+        /*
+         * Now populate the data array
+         */
+        int index = 0;
+        for (int i = 0; i < xCoords.size(); i++) {
+            for (int j = 0; j < yCoords.size(); j++) {
+                data[i][j] = points.get(index++);
+            }
+        }
+
+        /*
+         * All data reading is done at this point. We now interpolate onto each
+         * image point, using a BilinearInterpolator
+         */
+        BilinearInterpolator interpolator = new BilinearInterpolator(xCoords, yCoords, data);
+
+        List<Float> retData = new ArrayList<Float>();
+
+        for (int j = 0; j < height; j++) {
+            double y = imageGrid.getYAxis().getCoordinateValue(j);
+            for (int i = 0; i < width; i++) {
+                double x = imageGrid.getXAxis().getCoordinateValue(i);
+                retData.add(interpolator.getValue(x, y));
+//                        retData[i][height - 1 - j] = interpolator.getValue(x,y);
+            }
+        }
+        return retData;
     }
 
     /**
