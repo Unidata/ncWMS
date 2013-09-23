@@ -450,7 +450,10 @@ public abstract class AbstractWmsController extends AbstractController {
             else if (styleType.equalsIgnoreCase("vector")) style = ImageProducer.Style.VECTOR;
             //else if (styleType.equalsIgnoreCase("arrows")) style = ImageProducer.Style.ARROWS;
             else if (styleType.equalsIgnoreCase("barb")) style = ImageProducer.Style.BARB;
-            else if (styleType.equalsIgnoreCase("contour")) style = ImageProducer.Style.CONTOUR;
+            else if (styleType.equalsIgnoreCase("contour")){ 
+            	style = ImageProducer.Style.CONTOUR;
+            	smoothed = true;
+            }
             else if (styleType.equalsIgnoreCase("fancyvec")) style = ImageProducer.Style.FANCYVEC;
             else if (styleType.equalsIgnoreCase("linevec")) style = ImageProducer.Style.LINEVEC;
             else if (styleType.equalsIgnoreCase("stumpvec")) style = ImageProducer.Style.STUMPVEC;
@@ -1465,11 +1468,12 @@ public abstract class AbstractWmsController extends AbstractController {
                
             List<Float> retData = new ArrayList<Float>();
            
-            for(int i=0;i<width;i++){
-                double x = imageGrid.getXAxis().getCoordinateValue(i);
-                for(int j=0;j<height;j++){
-                    double y = imageGrid.getYAxis().getCoordinateValue(j);
+            for (int j = 0; j < height; j++) {
+                double y = imageGrid.getYAxis().getCoordinateValue(j);
+                for (int i = 0; i < width; i++) {
+                    double x = imageGrid.getXAxis().getCoordinateValue(i);
                     retData.add(interpolator.getValue(x, y));
+//                            retData[i][height - 1 - j] = interpolator.getValue(x,y);
                 }
             }
             return retData;
