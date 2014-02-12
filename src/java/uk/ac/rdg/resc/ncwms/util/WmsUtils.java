@@ -399,7 +399,25 @@ public class WmsUtils
                 }
                 components.get(vectorKey)[1] = layer;
                 realNorthEasts.put(vectorKey, true);
-            } else if (layer.getTitle().contains("u-") && layer.getTitle().contains("component")) {
+            } else if (layer.getTitle().contains("u-component of")) {
+                String vectorKey = layer.getTitle().replaceAll("u-component of", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[0] = layer;
+                realNorthEasts.put(vectorKey, false);
+            } else if (layer.getTitle().contains("v-component of")) {
+                String vectorKey = layer.getTitle().replaceAll("v-component of", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[1] = layer;
+                realNorthEasts.put(vectorKey, false);
+            }/* else if (layer.getTitle().contains("u-") && layer.getTitle().contains("component")) {
                 String vectorKey = layer.getTitle().replaceAll("u-", "").replaceAll("component", "").trim();
                 // Look to see if we've already found this component
                 if (!components.containsKey(vectorKey)) {
@@ -453,7 +471,7 @@ public class WmsUtils
                 }
                 components.get(vectorKey)[1] = layer;
                 realNorthEasts.put(vectorKey, false);
-            }
+            }*/
         }
 
         // Now add the vector quantities to the collection of Layer objects
@@ -466,8 +484,9 @@ public class WmsUtils
                 vectorLayers.add(vec);
             }
         }
-
+        
         return vectorLayers;
+        
     }
 
     /**
