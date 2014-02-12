@@ -12,7 +12,7 @@
   <!-- version>1.0.tds.4.3.20121211.1130</version-->
   <!-- version>1.0.tds.4.3.20130116.1130</version-->
   <!-- version>1.0.tds.4.3.20130402.1500</version-->
-  <version>1.0.tds.4.4.0</version>
+  <version>1.0.tds.4.4.3-SNAPSHOT</version>
   <description>
     ncWMS is an OGC Web Map Service (WMS) for geospatial data that are
     stored in CF-compliant NetCDF files.
@@ -434,7 +434,7 @@
     <maven-war-plugin.version>2.2</maven-war-plugin.version>
     <maven-release-plugin.version>2.2.1</maven-release-plugin.version>
 
-    <cdm.version>4.4.0-SNAPSHOT</cdm.version>
+    <cdm.version>4.4.3-SNAPSHOT</cdm.version>
     <javax.servlet.version>3.0.1</javax.servlet.version>
     <javax.servlet.jstl.version>1.2</javax.servlet.jstl.version>
     <log4j.version>2.0-beta9</log4j.version>

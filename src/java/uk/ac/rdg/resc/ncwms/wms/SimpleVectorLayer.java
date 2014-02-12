@@ -39,6 +39,7 @@ import org.joda.time.DateTime;
 import org.opengis.coverage.grid.GridEnvelope;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -69,11 +70,13 @@ public class SimpleVectorLayer implements VectorLayer {
     private final String id;
     private final ScalarLayer xLayer;
     private final ScalarLayer yLayer;
+    private final boolean trueNorthEast;
 
-    public SimpleVectorLayer(String id, ScalarLayer xLayer, ScalarLayer yLayer) {
+    public SimpleVectorLayer(String id, ScalarLayer xLayer, ScalarLayer yLayer, boolean trueNorthEast) {
         this.id = id;
         this.xLayer = xLayer;
         this.yLayer = yLayer;
+        this.trueNorthEast = trueNorthEast;
     }
 
     @Override
@@ -93,32 +96,39 @@ public class SimpleVectorLayer implements VectorLayer {
         @SuppressWarnings("unchecked")
         List<Float>[] xyComps = new List[2];
 
-        List<Float> xSourceData = getXComponent().readHorizontalPoints(dateTime, elevation, destGrid);
-        List<Float> ySourceData = getYComponent().readHorizontalPoints(dateTime, elevation, destGrid);
+        List<Float> xSourceData = getXComponent().readHorizontalPoints(dateTime, elevation,
+                destGrid);
+        List<Float> ySourceData = getYComponent().readHorizontalPoints(dateTime, elevation,
+                destGrid);
 
         /*
          * We have north and east data. We want x and y (in image CRS) data.
          */
         HorizontalGrid sourceGrid = xLayer.getHorizontalGrid();
-
+        CoordinateReferenceSystem sourceCrs = sourceGrid.getCoordinateReferenceSystem();
+        if(trueNorthEast) {
+            sourceCrs = DefaultGeographicCRS.WGS84;
+        }
+        
         /*
          * Check if we have a curvilinear grid. If so, there's no mathematical
          * transformation, so we need to find derivatives by using adjacent grid
          * points which is less accurate.
          */
-        if (!(sourceGrid instanceof AbstractCurvilinearGrid)) {
+        if (trueNorthEast || !(sourceGrid instanceof AbstractCurvilinearGrid)) {
             /*
              * We use this to find the derivatives at all destination grid
              * points (if needed)
              */
             MathTransform trans = CRS.findMathTransform(destGrid.getCoordinateReferenceSystem(),
-                    sourceGrid.getCoordinateReferenceSystem(), true);
+                    sourceCrs, true);
             /*
              * Check if we need to transform the vectors
              */
-            if (!trans.isIdentity()) {
+            if (trans.isIdentity()) {
                 /*
-                 * The 2 CRSs are equivalent, so we can just use the components directly
+                 * The 2 CRSs are equivalent, so we can just use the components
+                 * directly
                  */
                 xyComps[0] = xSourceData;
                 xyComps[1] = ySourceData;
@@ -170,8 +180,9 @@ public class SimpleVectorLayer implements VectorLayer {
                         /*
                          * The partial derivatives.
                          * 
-                         * dXsdXd is dXs / dXd, where Xs is the source grid x-position,
-                         * and Xd is the destination grid x-position etc.
+                         * dXsdXd is dXs / dXd, where Xs is the source grid
+                         * x-position, and Xd is the destination grid x-position
+                         * etc.
                          * 
                          * These would normally be /ed by dxy, but we're going
                          * to normalise next, so there's no point
@@ -193,7 +204,8 @@ public class SimpleVectorLayer implements VectorLayer {
                         dYsdYd /= dYT;
 
                         /*
-                         * Get the new components and add them to the new components lists
+                         * Get the new components and add them to the new
+                         * components lists
                          */
                         xData.add((float) ((dXsdXd * xSourceVal + dYsdXd * ySourceVal)));
                         yData.add((float) ((dXsdYd * xSourceVal + dYsdYd * ySourceVal)));
@@ -210,7 +222,7 @@ public class SimpleVectorLayer implements VectorLayer {
              * not very accurate, but it is likely to be sufficient for plotting
              * vector arrows
              */
-            
+
             /*
              * These will hold the x- and y-components of the data
              */
@@ -223,8 +235,8 @@ public class SimpleVectorLayer implements VectorLayer {
              */
             for (int i = 0; i < destDomainObjects.size(); i++) {
                 /*
-                 * First do a null check - we don't need to reproject if
-                 * there's no data there
+                 * First do a null check - we don't need to reproject if there's
+                 * no data there
                  */
                 Float xSourceVal = xSourceData.get(i);
                 Float ySourceVal = ySourceData.get(i);
@@ -237,13 +249,14 @@ public class SimpleVectorLayer implements VectorLayer {
                     GridEnvelope gridExtent = sourceGrid.getGridExtent();
                     int gridX = nearestGridPoint.getCoordinateValue(0);
                     int gridY = nearestGridPoint.getCoordinateValue(1);
-                    
+
                     HorizontalPosition plusXPos;
                     HorizontalPosition plusYPos;
                     HorizontalPosition centrePos = sourceGrid.transformCoordinates(gridX, gridY);
-                    
+
                     /*
-                     * Calculate the positions directly, or extend the grid if we're at the edge
+                     * Calculate the positions directly, or extend the grid if
+                     * we're at the edge
                      */
                     if (gridX + 1 < gridExtent.getHigh(0)) {
                         plusXPos = sourceGrid.transformCoordinates(gridX + 1, gridY);
@@ -253,7 +266,7 @@ public class SimpleVectorLayer implements VectorLayer {
                                 - plusXPos.getX(), 2 * centrePos.getY() - plusXPos.getY(),
                                 plusXPos.getCoordinateReferenceSystem());
                     }
-                    
+
                     if (gridY + 1 < gridExtent.getHigh(1)) {
                         plusYPos = sourceGrid.transformCoordinates(gridX, gridY + 1);
                     } else {
@@ -262,7 +275,7 @@ public class SimpleVectorLayer implements VectorLayer {
                                 - plusYPos.getX(), 2 * centrePos.getY() - plusYPos.getY(),
                                 plusYPos.getCoordinateReferenceSystem());
                     }
-                    
+
                     /*
                      * Calculate the partial derivatives.
                      * 
@@ -270,37 +283,39 @@ public class SimpleVectorLayer implements VectorLayer {
                      * from transformCoordinates. If the destination grid is
                      * non-lat-lon, this is not what we want.
                      */
-                    MathTransform trans = CRS.findMathTransform(DefaultGeographicCRS.WGS84, destGrid.getCoordinateReferenceSystem(), true);
+                    MathTransform trans = CRS.findMathTransform(DefaultGeographicCRS.WGS84,
+                            destGrid.getCoordinateReferenceSystem(), true);
                     double dXddXs;
                     double dYddXs;
                     double dXddYs;
                     double dYddYs;
-                    if(!trans.isIdentity()) {
-                        DirectPosition centre = trans.transform(centrePos.getDirectPosition(), null);
+                    if (!trans.isIdentity()) {
+                        DirectPosition centre = trans
+                                .transform(centrePos.getDirectPosition(), null);
                         DirectPosition plusX = trans.transform(plusXPos.getDirectPosition(), null);
                         DirectPosition plusY = trans.transform(plusYPos.getDirectPosition(), null);
                         dXddXs = (plusX.getOrdinate(0) - centre.getOrdinate(0));
                         dYddXs = (plusX.getOrdinate(1) - centre.getOrdinate(1));
-                        
+
                         dXddYs = (plusY.getOrdinate(0) - centre.getOrdinate(0));
                         dYddYs = (plusY.getOrdinate(1) - centre.getOrdinate(1));
                     } else {
                         dXddXs = (plusXPos.getX() - centrePos.getX());
                         dYddXs = (plusXPos.getY() - centrePos.getY());
-                        
+
                         dXddYs = (plusYPos.getX() - centrePos.getX());
                         dYddYs = (plusYPos.getY() - centrePos.getY());
                     }
-                    
+
                     /*
                      * Normalise so that the magnitudes will be correct
                      */
                     double dXT = Math.sqrt(dXddXs * dXddXs + dYddXs * dYddXs);
                     double dYT = Math.sqrt(dXddYs * dXddYs + dYddYs * dYddYs);
-                    
+
                     dXddXs /= dXT;
                     dYddXs /= dXT;
-                    
+
                     dXddYs /= dYT;
                     dYddYs /= dYT;
 
@@ -359,10 +374,14 @@ public class SimpleVectorLayer implements VectorLayer {
     }
 
     @Override
-    public boolean isQueryable() { return this.xLayer.isQueryable(); }    
+    public boolean isQueryable() {
+        return this.xLayer.isQueryable();
+    }
     
     @Override
-    public boolean isIntervalTime() { return this.xLayer.isIntervalTime(); }
+    public boolean isIntervalTime() { 
+    	return this.xLayer.isIntervalTime(); 
+    }
 
     @Override
     public GeographicBoundingBox getGeographicBoundingBox() {
