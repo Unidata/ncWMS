@@ -48,6 +48,7 @@ public class VectorFactory {
         vectors.add(triangleVector());
         vectors.add(lineVector());
         vectors.add(fancyVector());
+        vectors.add(prettyVector());
     }
 
     public VectorFactory() {
@@ -56,7 +57,7 @@ public class VectorFactory {
     public static void renderVector(String style, double speed, double angle, int i, int j,
             float scale, Graphics2D g) {
 
-        int type = 0;
+        int type = 4;
         if (style.equalsIgnoreCase("STUMPVEC")) {
             type = 0;
         } else if (style.equalsIgnoreCase("TRIVEC")) {
@@ -65,6 +66,8 @@ public class VectorFactory {
             type = 2;
         } else if (style.equalsIgnoreCase("FANCYVEC")) {
             type = 3;
+        } else if (style.equalsIgnoreCase("PRETTYVEC")) {
+            type = 4;
         }
 
         Path2D ret = (Path2D) vectors.get(type).clone();
@@ -74,10 +77,7 @@ public class VectorFactory {
         ret.transform(AffineTransform.getScaleInstance(scale, scale));
         ret.transform(AffineTransform.getTranslateInstance(i, j));
 
-        // Don't fill the FANCYVEC
-        if (type != 3) {
-            g.fill(ret);
-        }
+        g.fill(ret);
         g.draw(ret);
     }
 
@@ -124,6 +124,19 @@ public class VectorFactory {
         path.lineTo(11, -1.5);
         path.lineTo(3, 2);
         path.lineTo(5, -1);
+        path.closePath();
+        return path;
+    }
+    
+    private static Path2D prettyVector() {
+        Path2D path = new Path2D.Double();
+        path.moveTo(0, -0.5);
+        path.lineTo(7.5, -0.5);
+        path.lineTo(6, -2.5);
+        path.lineTo(12, 0);
+        path.lineTo(6, 2.5);
+        path.lineTo(7.5, 0.5);
+        path.lineTo(0, 0.5);
         path.closePath();
         return path;
     }

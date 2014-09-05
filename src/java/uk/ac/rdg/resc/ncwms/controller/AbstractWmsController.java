@@ -457,7 +457,8 @@ public abstract class AbstractWmsController extends AbstractController {
             else if (styleType.equalsIgnoreCase("fancyvec")) style = ImageProducer.Style.FANCYVEC;
             else if (styleType.equalsIgnoreCase("linevec")) style = ImageProducer.Style.LINEVEC;
             else if (styleType.equalsIgnoreCase("stumpvec")) style = ImageProducer.Style.STUMPVEC;
-            else if (styleType.equalsIgnoreCase("trivec")) style = ImageProducer.Style.TRIVEC;           
+            else if (styleType.equalsIgnoreCase("trivec")) style = ImageProducer.Style.TRIVEC;
+            else if (styleType.equalsIgnoreCase("prettyvec")) style = ImageProducer.Style.PRETTYVEC;
             else throw new StyleNotDefinedException("The style " + styles[0] +
                 " is not supported by this server");
 
@@ -485,6 +486,7 @@ public abstract class AbstractWmsController extends AbstractController {
             .opacity(styleRequest.getOpacity())
             .numColourBands(styleRequest.getNumColourBands())
             .numContours(styleRequest.getNumContours())
+            .vectorScale(styleRequest.getVectorScaleFactor())
             .build();
         // Need to make sure that the images will be compatible with the
         // requested image format
