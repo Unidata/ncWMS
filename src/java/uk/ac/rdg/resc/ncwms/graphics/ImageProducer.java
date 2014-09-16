@@ -139,7 +139,8 @@ public final class ImageProducer
     public BufferedImage getLegend(Layer layer)
     {
         return this.colorPalette.createLegend(this.numColourBands, layer.getTitle(),
-            layer.getUnits(), this.logarithmic, this.scaleRange);
+            layer.getUnits(), this.logarithmic, this.scaleRange,
+            this.transparent, this.bgColor);
     }
     
     public int getPicWidth()
@@ -286,7 +287,8 @@ public final class ImageProducer
                         // Color arrow
                         index = this.getColourIndex(mag.floatValue());
                         if (this.style != Style.VECTOR) {
-                            g.setColor(new Color(colorModel.getRGB(index)));
+                            g.setColor(new Color(colorModel.getRGB(index),
+                                                 colorModel.hasAlpha()));
                         }
                         if (this.style == Style.BARB) {
                             g.setStroke(new BasicStroke(1));
@@ -354,18 +356,6 @@ public final class ImageProducer
         Graphics2D g = image.createGraphics();
         renderer.draw(g);
         
-//        int transpPixel = getColorModel().getRGB(0);
-//        System.out.println(transpPixel);
-//        for(int i=0; i<image.getWidth();i++) {
-//            for(int j=0; j<image.getHeight();j++) {
-//                int rgb = image.getRGB(i, j);
-//                System.out.println("rgb:"+rgb);
-//                if(rgb == transpPixel) {
-//                    image.setRGB(i, j, 0);
-//                }
-//            }            
-//        }
-//        
         return image;
     }
 
