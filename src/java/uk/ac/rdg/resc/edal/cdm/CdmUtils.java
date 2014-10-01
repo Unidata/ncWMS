@@ -101,19 +101,6 @@ public final class CdmUtils
 {
     private static final Logger logger = LoggerFactory.getLogger(CdmUtils.class);
 
-    /** Map of CF identifiers for calendar systems to joda-time Chronologies */
-    private static final Map<String, Chronology> CHRONOLOGIES = CollectionUtils.newHashMap();
-
-    static
-    {
-        CHRONOLOGIES.put("julian", JulianChronology.getInstanceUTC());
-        CHRONOLOGIES.put("360_day", ThreeSixtyDayChronology.getInstanceUTC());
-        CHRONOLOGIES.put("all_leap", AllLeapChronology.getInstanceUTC());
-        CHRONOLOGIES.put("366_day", AllLeapChronology.getInstanceUTC());
-        CHRONOLOGIES.put("noleap", NoLeapChronology.getInstanceUTC());
-        CHRONOLOGIES.put("365_day", NoLeapChronology.getInstanceUTC());
-    }
-
     /** Enforce non-instantiability */
     private CdmUtils() { throw new AssertionError(); }
 
@@ -387,58 +374,11 @@ public final class CdmUtils
      */
     public static List<DateTime> getTimesteps(CoordinateAxis1DTime timeAxis)
     {
-        Attribute cal = timeAxis.findAttribute("calendar");
-        String calString = cal == null ? null : cal.getStringValue().toLowerCase();
-        // TODO: check that we're using the right sort of Gregorian (proleptic or not)
-        if (calString == null || calString.equals("gregorian") || calString.equals("standard"))
-        {
-            List<DateTime> timesteps = new ArrayList<DateTime>();
-            // Use the Java NetCDF library's built-in date parsing code
-            //for (Date date : timeAxis.getTimeDates())
-            for (CalendarDate date : timeAxis.getCalendarDates()  )
-            {
-                timesteps.add(new DateTime(date.getMillis(), DateTimeZone.UTC));
-            }
-            return timesteps;
-        }
-        else
-        {
-            Chronology chron = CHRONOLOGIES.get(calString);
-            if (chron == null)
-            {
-                throw new IllegalArgumentException("The calendar system "
-                    + cal.getStringValue() + " cannot be handled");
-            }
-            return getTimestepsForChronology(timeAxis, chron);
-        }
-    }
-
-    /**
-     * Creates a list of DateTimes in a non-standard calendar system. All of the
-     * DateTimes will have a zero time zone offset (i.e. UTC).
-     */
-    private static List<DateTime> getTimestepsForChronology(CoordinateAxis1DTime timeAxis, Chronology chron)
-    {
-        // Get the units of the time axis, e.g. "days since 1970-1-1 0:0:0"
-        String timeAxisUnits = timeAxis.getUnitsString();
-        int indexOfSince = timeAxisUnits.indexOf(" since ");
-
-        // Get the units of the time axis, e.g. "days", "months"
-        String unitIncrement = timeAxisUnits.substring(0, indexOfSince);
-        // Get the number of milliseconds this represents
-        long unitLength = TimeUtils.getUnitLengthMillis(unitIncrement);
-
-        // Get the base date of the axis, e.g. "1970-1-1 0:0:0"
-        String baseDateTimeString = timeAxisUnits.substring(indexOfSince + " since ".length());
-        DateTime baseDateTime = TimeUtils.parseUdunitsTimeString(baseDateTimeString, chron);
-
-        // Now create and return the axis values
         List<DateTime> timesteps = new ArrayList<DateTime>();
-        for (double val : timeAxis.getCoordValues())
-        {
-            timesteps.add(baseDateTime.plus((long)(unitLength * val)));
-        }
-
+        // Use the Java NetCDF library's built-in date parsing code
+        //for (Date date : timeAxis.getTimeDates())
+        for (CalendarDate date : timeAxis.getCalendarDates()  )
+            timesteps.add(new DateTime(date.getMillis(), DateTimeZone.UTC));
         return timesteps;
     }
 
