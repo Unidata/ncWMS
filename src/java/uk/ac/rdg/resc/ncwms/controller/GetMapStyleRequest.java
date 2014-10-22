@@ -55,7 +55,6 @@ public class GetMapStyleRequest
     // These are the data values that correspond with the extremes of the
     // colour scale
     private Range<Float> colorScaleRange;
-    private float vectorScale;
     
     /**
      * Creates a new instance of GetMapStyleRequest from the given parameters
@@ -91,7 +90,6 @@ public class GetMapStyleRequest
         this.colorScaleRange = getColorScaleRange(params);
         this.numColourBands = getNumColourBands(params);
         this.logarithmic = isLogScale(params);
-        this.vectorScale = Float.parseFloat(params.getString("vectorScale", "1").toLowerCase());
     }
     
     /**
@@ -218,11 +216,6 @@ public class GetMapStyleRequest
     public int getNumColourBands()
     {
         return numColourBands;
-    }
-
-    public float getVectorScale()
-    {
-        return vectorScale;
     }
     
 }

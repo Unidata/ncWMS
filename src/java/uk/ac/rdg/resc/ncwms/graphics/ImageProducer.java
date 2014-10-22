@@ -31,9 +31,7 @@ package uk.ac.rdg.resc.ncwms.graphics;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
-import java.awt.RenderingHints;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
@@ -41,7 +39,6 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -61,7 +58,7 @@ public final class ImageProducer
 {
     private static final Logger logger = LoggerFactory.getLogger(ImageProducer.class);
 
-    public static enum Style {BOXFILL, VECTOR, BARB, STUMPVEC, TRIVEC, LINEVEC, FANCYVEC};
+    public static enum Style {BOXFILL, VECTOR};
     
     private Style style;
     // Width and height of the resulting picture
@@ -82,13 +79,9 @@ public final class ImageProducer
     private Range<Float> scaleRange;
 
     /**
-     * The scale factor between vectors
+     * The length of arrows in pixels, only used for vector plots
      */
-    private float vectorScale;
-    private String units;
-    private int equator_y_index;
-    private float arrowLength = 14.0f;
-    private float barbLength = 28.0f;
+    private float arrowLength = 10.0f;
     
     // set of rendered images, ready to be turned into a picture
     private List<BufferedImage> renderedFrames = new ArrayList<BufferedImage>();
@@ -181,108 +174,6 @@ public final class ImageProducer
             this.opacity, this.bgColor, this.transparent);
     }
 
-    // Create the pixel array for the frame
-    private BufferedImage createVector(Components comps, String label) {
-
-        byte[] pixels = new byte[this.picWidth * this.picHeight];
-        Arrays.fill(pixels, (byte)this.numColourBands);
-        // Create a ColorModel for the image
-        ColorModel colorModel = this.getColorModel();
-        
-        // Create the Image
-        DataBuffer buf = new DataBufferByte(pixels, pixels.length);
-        SampleModel sampleModel = colorModel.createCompatibleSampleModel(this.picWidth, this.picHeight);
-        WritableRaster raster = Raster.createWritableRaster(sampleModel, buf, null);
-        BufferedImage image = new BufferedImage(colorModel, raster, false, null);
-
-        // Add the label to the image
-        // TODO: colour needs to change with different palettes!
-        if (label != null && !label.equals(""))
-        {
-            Graphics2D gfx = (Graphics2D)image.getGraphics();
-            gfx.setPaint(new Color(0, 0, 143));
-            gfx.fillRect(1, image.getHeight() - 19, image.getWidth() - 1, 18);
-            gfx.setPaint(new Color(255, 151, 0));
-            gfx.drawString(label, 10, image.getHeight() - 5);
-        }
-
-        Graphics2D g = image.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
-        g.setColor(new Color(0,0,0,100));
-
-        //logger.debug("Drawing vectors, length = {} pixels", this.arrowLength);
-        //List<Float> east = data.get(0);
-        //List<Float> north = data.get(1);
-
-        float stepScale = 1.1f;
-        float imageLength = this.arrowLength;
-
-        if (this.style == Style.BARB) {
-            imageLength = this.barbLength * this.vectorScale;
-            stepScale = 1.2f * this.vectorScale;
-         } else {
-            imageLength = this.arrowLength * this.vectorScale;
-            stepScale = 1.1f * this.vectorScale;
-         }
-
-        int index;
-        int dataIndex;
-        double radangle;
-        Double mag;
-        Float eastVal;
-        Float northVal;
-
-        for (int i = 0; i < this.picWidth; i += Math.ceil(imageLength + stepScale))
-        {
-            for (int j = 0; j < this.picHeight; j += Math.ceil(imageLength + stepScale))
-            {
-                dataIndex = this.getDataIndex(i, j);
-                eastVal = comps.x.get(dataIndex);
-                northVal = comps.y.get(dataIndex);
-                if (eastVal != null && northVal != null)
-                {
-                    radangle = Math.atan2(eastVal.doubleValue(), northVal.doubleValue());
-                    mag = Math.sqrt(Math.pow(northVal.doubleValue(), 2) + Math.pow(eastVal.doubleValue() , 2));
-
-                    // Color arrow
-                    index = this.getColourIndex(mag.floatValue());
-                    g.setColor(new Color(colorModel.getRGB(index)));
-                    if (this.style == Style.BARB) {                   
-                      g.setStroke(new BasicStroke(1));
-                      BarbFactory.renderWindBarbForSpeed(mag, radangle, i, j, this.units, this.vectorScale, j >= this.equator_y_index, g);
-                    } else {
-                      // Arrows.  We need to pick the style arrow now
-                      VectorFactory.renderVector(this.style.name(), mag, radangle, i, j, this.vectorScale, g);
-                    }
-                }
-            }
-        }
-        return image;
-    }
-    /**
-     * Calculates the index of the data point in a data array that corresponds
-     * with the given index in the image array, taking into account that the
-     * vertical axis is flipped.
-     */
-    private int getDataIndex(int imageIndex)
-    {
-        int imageI = imageIndex % this.picWidth;
-        int imageJ = imageIndex / this.picWidth;
-        return this.getDataIndex(imageI, imageJ);
-    }
-
-    /**
-     * Calculates the index of the data point in a data array that corresponds
-     * with the given index in the image array, taking into account that the
-     * vertical axis is flipped.
-     */
-    private int getDataIndex(int imageI, int imageJ)
-    {
-        int dataJ = this.picHeight - imageJ - 1;
-        int dataIndex = dataJ * this.picWidth + imageI;
-        return dataIndex;
-    }
-
     /**
     * Creates and returns a single frame as an Image, based on the given data.
     * Adds the label if one has been set. The scale must be set before
@@ -290,9 +181,6 @@ public final class ImageProducer
     */
     private BufferedImage createImage(Components comps, String label)
     {
-        if (this.style == Style.FANCYVEC || this.style == Style.TRIVEC || this.style == Style.BARB || this.style == Style.STUMPVEC || this.style == Style.LINEVEC) {
-            return this.createVector(comps, label);
-        } else {
             // Create the pixel array for the frame
             byte[] pixels = new byte[this.picWidth * this.picHeight];
             // We get the magnitude of the input data (takes care of the case
@@ -309,7 +197,6 @@ public final class ImageProducer
 
             // Create a ColorModel for the image
             ColorModel colorModel = this.getColorModel();
-
 
             // Create the Image
             DataBuffer buf = new DataBufferByte(pixels, pixels.length);
@@ -369,8 +256,31 @@ public final class ImageProducer
 
             return image;
         }
+
+    /**
+     * Calculates the index of the data point in a data array that corresponds
+     * with the given index in the image array, taking into account that the
+     * vertical axis is flipped.
+     */
+    private int getDataIndex(int imageIndex)
+    {
+        int imageI = imageIndex % this.picWidth;
+        int imageJ = imageIndex / this.picWidth;
+        return this.getDataIndex(imageI, imageJ);
     }
     
+    /**
+     * Calculates the index of the data point in a data array that corresponds
+     * with the given index in the image array, taking into account that the
+     * vertical axis is flipped.
+     */
+    private int getDataIndex(int imageI, int imageJ)
+    {
+        int dataJ = this.picHeight - imageJ - 1;
+        int dataIndex = dataJ * this.picWidth + imageI;
+        return dataIndex;
+    }
+
     /**
      * @return the colour index that corresponds to the given value
      */
@@ -477,14 +387,11 @@ public final class ImageProducer
         private int picHeight = -1;
         private boolean transparent = false;
         private int opacity = 100;
-        private float vectorScale = 1;
         private int numColourBands = ColorPalette.MAX_NUM_COLOURS;
         private Boolean logarithmic = null;
         private Color bgColor = Color.WHITE;
         private Range<Float> scaleRange = null;
         private Style style = null;
-        private String units = null;
-        private int equator_y_index = 0;
         private ColorPalette colorPalette = null;
 
         /**
@@ -572,27 +479,6 @@ public final class ImageProducer
             return this;
         }
 
-        /** Sets the vectorScale (defaults to 1.0) */
-        public Builder vectorScale(float scale) {
-            if (scale <= 0) throw new IllegalArgumentException();
-            this.vectorScale = scale;
-            return this;
-        }
-        
-        /** Sets the layers units */
-        public Builder units(String units) {
-            this.units = units;
-            return this;
-        }
-
-        /** Sets the yindex that the hemisphere switches to southern
-         *  value is 0 if it does not touch the southern hemisphere. */
-        public Builder equator_y_index(int equator_y_index) {
-            this.equator_y_index = equator_y_index;
-            return this;
-        }
-
-        
         /**
          * Checks the fields for internal consistency, then creates and returns
          * a new ImageProducer object.
@@ -626,9 +512,7 @@ public final class ImageProducer
             ip.scaleRange = this.scaleRange == null
                 ? emptyRange
                 : this.scaleRange;
-            ip.vectorScale = this.vectorScale;
-            ip.units = this.units;
-            ip.equator_y_index = this.equator_y_index;
+
             return ip;
         }
     }

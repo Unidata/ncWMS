@@ -1,0 +1,24 @@
+/target
+
+# Ignore eclipse project files
+.classpath
+.project
+.settings/
+
+# Ignore IntelliJ IDEA project files
+.idea/
+*.ipr
+*.iml
+*.iws
+.idea/
+atlassian-ide-plugin.xml
+
+# Ignore NetBeans project files
+nbproject/private/
+
+# Ignore other build directories
+bin/
+build/
+dist/
+
+*~

@@ -44,9 +44,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.geotoolkit.referencing.CRS;
 import org.joda.time.Chronology;
-import org.joda.time.Seconds;
-import org.joda.time.PeriodType;
-import org.joda.time.Duration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
@@ -92,9 +89,6 @@ public class WmsUtils
 
     private static final DateTimeFormatter ISO_DATE_TIME_FORMATTER =
         ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC);
-
-    private static final DateTimeFormatter ISO_DATE_TIME_NO_MILLIS_FORMATTER =
-        ISODateTimeFormat.dateTimeNoMillis().withZone(DateTimeZone.UTC);
 
     private static final DateTimeFormatter ISO_DATE_TIME_PARSER =
         ISODateTimeFormat.dateTimeParser().withZone(DateTimeZone.UTC);
@@ -143,32 +137,7 @@ public class WmsUtils
      */
     public static String dateTimeToISO8601(DateTime dateTime)
     {
-      if ((dateTime != null) && (dateTime.getMillisOfSecond() == 0)) {
-        return ISO_DATE_TIME_NO_MILLIS_FORMATTER.print(dateTime);
-      } else {
         return ISO_DATE_TIME_FORMATTER.print(dateTime);
-      }
-    }
-
-    public static String dateTimesToCapabilitiesString(List<DateTime> dates, boolean useTimes) {
-      if (useTimes == true) {
-        return getTimeStringForCapabilities(dates);
-      } else {
-        return dateTimesToList(dates);
-      }
-    }
-
-    /**
-     * Converts a list of DateTime objects to a list of ISO dates
-     */
-    public static String dateTimesToList(List<DateTime> dates)
-    {
-        StringBuilder returnString = new StringBuilder();
-        for (DateTime d : dates) {
-          returnString.append(dateTimeToISO8601(d));
-          returnString.append(",");
-        }
-        return returnString.substring(0,returnString.length() - 1).toString();
     }
 
     /**
@@ -433,28 +402,6 @@ public class WmsUtils
                 }
                 components.get(vectorKey)[1] = layer;
             }
-            
-            //Same stuff for GRIB conventions (U-component -> eastward, V-component -> norhward)            
-            if (layer.getTitle().contains("u-component of ")){
-                String vectorKey = layer.getTitle().replaceFirst("u-component of ", "");
-                // Look to see if we've already found the northward component
-                if (!components.containsKey(vectorKey))
-                {
-                    // We haven't found the northward component yet
-                    components.put(vectorKey, new ScalarLayer[2]);
-                }
-                components.get(vectorKey)[0] = layer;                
-            }else if(layer.getTitle().contains("v-component of ")){
-                String vectorKey = layer.getTitle().replaceFirst("v-component of ", "");
-                // Look to see if we've already found the eastward component
-                if (!components.containsKey(vectorKey))
-                {
-                    // We haven't found the eastward component yet
-                    components.put(vectorKey, new ScalarLayer[2]);
-                }
-                components.get(vectorKey)[1] = layer;                
-            }
-            
         }
 
         // Now add the vector quantities to the collection of Layer objects
@@ -470,10 +417,6 @@ public class WmsUtils
             }
         }
 
-        
-        
-        
-        
         return vectorLayers;
     }
 
