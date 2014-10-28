@@ -60,11 +60,11 @@ public class ColorPalette
     private static final Logger logger = LoggerFactory.getLogger(ColorPalette.class);
     
     /**
-     * The maximum number of colours a palette can support (254).
+     * The maximum number of colours a palette can support (250).
      * (One would be hard pushed to distinguish more colours than this in a
      * typical scenario anyway.)
      */
-    public static final int MAX_NUM_COLOURS = 253;
+    public static final int MAX_NUM_COLOURS = 250;
 
     private static final Map<String, ColorPalette> palettes =
         new HashMap<String, ColorPalette>();
@@ -166,7 +166,7 @@ public class ColorPalette
                     String paletteName = file.getName().substring(0, file.getName().lastIndexOf("."));
                     ColorPalette palette = new ColorPalette(paletteName, readColorPalette(new FileReader(file)));
                     logger.debug("Read palette with name {}", paletteName);
-                    palettes.put(palette.getName(), palette);
+                    palettes.put(palette.getName().toLowerCase(), palette);
                 }
                 catch(Exception e)
                 {

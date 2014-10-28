@@ -31,64 +31,60 @@ package uk.ac.rdg.resc.ncwms.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.httpclient.Credentials;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScheme;
-import org.apache.commons.httpclient.auth.CredentialsNotAvailableException;
-import org.apache.commons.httpclient.auth.CredentialsProvider;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.client.CredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ucar.nc2.util.net.HTTPSession;
+import ucar.httpservices.HTTPSession;
 
 /**
- * Handles authentication with OPeNDAP servers.  This object is created by
- * the Spring framework and is then injected into the {@link Config} object,
- * which looks for usernames and passwords in OPeNDAP
- * URLs, then calls {@link #addCredentials} when it finds them.
+ * Handles authentication with OPeNDAP servers. This object is created by the
+ * Spring framework and is then injected into the {@link Config} object, which
+ * looks for usernames and passwords in OPeNDAP URLs, then calls
+ * {@link #addCredentials} when it finds them.
  *
  * @author Jon Blower
  */
-public class NcwmsCredentialsProvider implements CredentialsProvider
-{
+public class NcwmsCredentialsProvider implements CredentialsProvider {
     private static final Logger logger = LoggerFactory.getLogger(NcwmsCredentialsProvider.class);
-    
+
     // Maps "host:port" to a Credentials object
     private Map<String, Credentials> creds = new HashMap<String, Credentials>();
-    
+
     /**
-     * Called by the Spring framework.  Registers this class with
-     * the NetCDF library
+     * Called by the Spring framework. Registers this class with the NetCDF
+     * library
      */
-    public void init()
-    {
+    public void init() {
         HTTPSession.setGlobalCredentialsProvider(this);
         HTTPSession.setGlobalUserAgent("ncWMS");
         logger.debug("NcwmsCredentialsProvider initialized");
     }
-    
-    public void addCredentials(String host, int port, String usernamePassword)
-    {
-        logger.debug("Adding credentials for {}:{} - {}", new Object[]{host, port, usernamePassword});
-        this.creds.put(host + ":" + port, new UsernamePasswordCredentials(usernamePassword));
+
+    @Override
+    public Credentials getCredentials(AuthScope authScope) {
+        Credentials cred = this.creds.get(authScope.getHost() + ":" + authScope.getPort());
+        if (cred == null) {
+            logger.debug("No credentials available for ({},{})", authScope.getHost(),
+                    authScope.getPort());
+        } else {
+            logger.debug("Returning credentials for ({},{})", authScope.getHost(),
+                    authScope.getPort());
+        }
+        return cred;
     }
 
     @Override
-    public Credentials getCredentials(AuthScheme authScheme,
-        String host, int port, boolean proxy) throws CredentialsNotAvailableException
-    {
-        Credentials cred = this.creds.get(host + ":" + port);
-        if (cred == null)
-        {
-            logger.debug("No credentials available for ({},{})", host, port);
-            throw new CredentialsNotAvailableException();
-        }
-        else
-        {
-            logger.debug("Returning credentials for ({},{})", host, port);
-            return cred;
-        }
+    public void clear() {
+        this.creds.clear();
     }
-    
+
+    @Override
+    public void setCredentials(AuthScope authScope, Credentials credentials) {
+        logger.debug("Adding credentials for {}:{} - {}", new Object[] { authScope.getHost(),
+                authScope.getPort(), credentials.getUserPrincipal().getName() });
+        this.creds.put(authScope.getHost() + ":" + authScope.getPort(), credentials);
+    }
 }

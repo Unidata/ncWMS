@@ -46,6 +46,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletContext;
 
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.joda.time.DateTime;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
@@ -575,8 +577,9 @@ public class Config implements ServerConfig, ApplicationContextAware {
                 String userInfo = url.getUserInfo();
                 logger.debug("user info = {}", userInfo);
                 if (userInfo != null) {
-                    this.credentialsProvider.addCredentials(url.getHost(),
-                            url.getPort() >= 0 ? url.getPort() : url.getDefaultPort(), userInfo);
+                    this.credentialsProvider.setCredentials(
+                            new AuthScope(url.getHost(), url.getPort()),
+                            new UsernamePasswordCredentials(userInfo));
                 }
                 // Change the location to "dods://..." so that the Java NetCDF
                 // library knows to use the OPeNDAP protocol rather than plain
