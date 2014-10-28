@@ -14,7 +14,9 @@
 <c:if test="${dataset.ready}">
     <menu:folder label="${title}">
         <c:forEach items="${dataset.layers}" var="layer">
-            <menu:layer dataset="${dataset}" name="${layer.name}" label="${layer.title}"/>
+            <c:if test="${not layer.disabled}">
+                <menu:layer dataset="${dataset}" name="${layer.name}" label="${layer.title}"/>
+            </c:if>
         </c:forEach>
     </menu:folder>
 </c:if>

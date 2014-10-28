@@ -62,6 +62,9 @@ public class Variable
 
     @Attribute(name="numColorBands", required=false)
     private int numColorBands = ColorPalette.MAX_NUM_COLOURS;
+    
+    @Attribute(name="disabled", required=false)
+    private boolean disabled = false;
 
     private Dataset dataset;
 
@@ -235,6 +238,18 @@ public class Variable
     public boolean isLogScaling()
     {
         return this.logScaling;
+    }
+    
+    /**
+     * Return true if this variable is disabled
+     */
+    public boolean isDisabled()
+    {
+        return disabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
     }
 
     /**

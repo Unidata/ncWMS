@@ -145,13 +145,17 @@ public abstract class AbstractWmsController extends AbstractController {
         // directory containing the palettes.  Therefore we need a way of 
         // getting at the ServletContext object, which isn't available from
         // the ColorPalette class.
-        File paletteLocationDir = this.serverConfig.getPaletteFilesLocation(
-            this.getServletContext());
-        if (paletteLocationDir != null && paletteLocationDir.exists()
-                && paletteLocationDir.isDirectory()) {
-            ColorPalette.loadPalettes(paletteLocationDir);
-        } else {
-            log.info("Directory of palette files does not exist or is not a directory");
+        try {
+            File paletteLocationDir = this.serverConfig.getPaletteFilesLocation(
+                this.getServletContext());
+            if (paletteLocationDir != null && paletteLocationDir.exists()
+                    && paletteLocationDir.isDirectory()) {
+                ColorPalette.loadPalettes(paletteLocationDir);
+            } else {
+                log.info("Directory of palette files does not exist or is not a directory");
+            }
+        } catch (Exception e) {
+            log.error("Problem finding directory of colour palettes", e);
         }
     }
 
@@ -506,10 +510,11 @@ public abstract class AbstractWmsController extends AbstractController {
         long beforeExtractData = System.currentTimeMillis();
         // Use a single null time value if the layer has no time axis
         if (timeValues.isEmpty()) timeValues = Arrays.asList((DateTime)null);
+        boolean googleEarth = imageFormat instanceof KmzFormat;
         for (DateTime timeValue : timeValues) {
             // Only add a label if this is part of an animation
             String tValueStr = "";
-            if (timeValues.size() > 1 && timeValue != null) {
+            if (timeValues.size() > 1 && timeValue != null && !googleEarth) {
                 tValueStr = WmsUtils.dateTimeToISO8601(timeValue);
             }
             tValueStrings.add(tValueStr);
@@ -543,7 +548,7 @@ public abstract class AbstractWmsController extends AbstractController {
         httpServletResponse.setStatus(HttpServletResponse.SC_OK);
         httpServletResponse.setContentType(mimeType);
         // If this is a KMZ file give it a sensible filename
-        if (imageFormat instanceof KmzFormat) {
+        if (googleEarth) {
             httpServletResponse.setHeader("Content-Disposition", "inline; filename=" +
                     layer.getDataset().getId() + "_" + layer.getId() + ".kmz");
         }

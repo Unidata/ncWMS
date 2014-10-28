@@ -79,6 +79,11 @@ public interface Layer
      * Returns true if this Layer can be queried through GetFeatureInfo
      */
     public boolean isQueryable();
+    
+    /**
+     * Returns true if this Layer is set to be disabled
+     */
+    public boolean isDisabled();
 
     /**
      * Returns the geographic extent of this layer in latitude-longitude

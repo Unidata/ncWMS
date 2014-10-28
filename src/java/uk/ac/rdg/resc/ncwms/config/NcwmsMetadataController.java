@@ -32,16 +32,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.web.servlet.ModelAndView;
+
 import uk.ac.rdg.resc.ncwms.controller.AbstractMetadataController;
 import uk.ac.rdg.resc.ncwms.controller.AbstractWmsController.LayerFactory;
+import uk.ac.rdg.resc.ncwms.controller.RequestParams;
 import uk.ac.rdg.resc.ncwms.exceptions.MetadataException;
 import uk.ac.rdg.resc.ncwms.usagelog.UsageLogEntry;
-import uk.ac.rdg.resc.ncwms.wms.Dataset;
 
 /**
  * Controller that handles all requests for non-standard metadata by the
@@ -86,6 +90,13 @@ class NcwmsMetadataController extends AbstractMetadataController
         return super.handleRequest(request, response, usageLogEntry);
     }
     
+    @Override
+    protected ModelAndView showMinMax(RequestParams params, HttpServletRequest request,
+            UsageLogEntry usageLogEntry) throws Exception {
+        params = NcwmsController.addDynamicDatasetToParams(params, request);
+        return super.showMinMax(params, request, usageLogEntry);
+    }
+    
     /**
      * Forwards the request to a third party.  In this case this server is acting
      * as a proxy.
@@ -100,8 +111,9 @@ class NcwmsMetadataController extends AbstractMetadataController
     {
         // Download the data from the remote URL
         // TODO: is there a proxy class we can invoke here?
+        url = URLDecoder.decode(url, "UTF-8");
         StringBuffer fullURL = new StringBuffer(url);
-        boolean firstTime = true;
+        boolean firstTime = !url.contains("?");
         for (Object urlParamNameObj : request.getParameterMap().keySet())
         {
             fullURL.append(firstTime ? "?" : "&");
@@ -145,11 +157,25 @@ class NcwmsMetadataController extends AbstractMetadataController
     protected ModelAndView showMenu(HttpServletRequest request, UsageLogEntry usageLogEntry)
         throws Exception
     {
-        Map<String, ? extends Dataset> allDatasets = this.serverConfig.getAllDatasets();
+        RequestParams params = new RequestParams(request.getParameterMap());
+        Map<String, uk.ac.rdg.resc.ncwms.config.Dataset> allDatasets;
+        String datasetId = params.getString("dataset");
+        if(datasetId != null && !datasetId.equals("")) {
+            /*
+             * We are requesting the menu for a specific dataset
+             */
+            allDatasets = new HashMap<String, uk.ac.rdg.resc.ncwms.config.Dataset>();
+            uk.ac.rdg.resc.ncwms.config.Dataset dataset = this.serverConfig.getDatasetById(datasetId);
+            if(dataset != null) {
+                allDatasets.put(dataset.getId(), dataset);
+            }
+        } else {
+            allDatasets = this.serverConfig.getAllDatasets();
+        }
         String menu = "default";
         // Let's see if the client has requested a specific menu.  If so, we'll
         // construct the menu based on the appropriate JSP.
-        String menuFromRequest = request.getParameter("menu");
+        String menuFromRequest = params.getString("menu");
         if (menuFromRequest != null && !menuFromRequest.trim().equals(""))
         {
             menu = menuFromRequest.toLowerCase();

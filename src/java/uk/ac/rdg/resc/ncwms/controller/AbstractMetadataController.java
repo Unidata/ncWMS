@@ -33,8 +33,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
@@ -42,9 +44,11 @@ import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
+
 import uk.ac.rdg.resc.edal.coverage.grid.RegularGrid;
 import uk.ac.rdg.resc.edal.util.Range;
 import uk.ac.rdg.resc.edal.util.Ranges;
+import uk.ac.rdg.resc.ncwms.config.NcwmsController;
 import uk.ac.rdg.resc.ncwms.controller.AbstractWmsController.LayerFactory;
 import uk.ac.rdg.resc.ncwms.exceptions.LayerNotDefinedException;
 import uk.ac.rdg.resc.ncwms.exceptions.MetadataException;
@@ -99,7 +103,8 @@ public abstract class AbstractMetadataController
             }
             else if (item.equals("minmax"))
             {
-                return this.showMinMax(request, usageLogEntry);
+                RequestParams params = new RequestParams(request.getParameterMap());
+                return this.showMinMax(params, request, usageLogEntry);
             }
             else if (item.equals("animationTimesteps"))
             {
@@ -215,6 +220,19 @@ public abstract class AbstractMetadataController
         {
             throw new LayerNotDefinedException("null");
         }
+        String datasetReqParameter = null;
+        for(String testDatasetReqParameter : request.getParameterMap().keySet()) {
+            if(testDatasetReqParameter.equalsIgnoreCase("dataset")) {
+                datasetReqParameter = testDatasetReqParameter;
+                break;
+            }
+        }
+        if(datasetReqParameter != null) {
+            String datasetId = request.getParameter(datasetReqParameter);
+            if(datasetId != null) {
+                layerName = datasetId+"/"+layerName;
+            }
+        }
         return this.layerFactory.getLayer(layerName);
     }
     
@@ -271,10 +289,9 @@ public abstract class AbstractMetadataController
      * Shows an XML document containing the minimum and maximum values for the
      * tile given in the parameters.
      */
-    private ModelAndView showMinMax(HttpServletRequest request,
+    protected ModelAndView showMinMax(RequestParams params, HttpServletRequest request,
         UsageLogEntry usageLogEntry) throws Exception
     {
-        RequestParams params = new RequestParams(request.getParameterMap());
         // We only need the bit of the GetMap request that pertains to data extraction
         // TODO: the hard-coded "1.1.1" is ugly: it basically means that the
         // GetMapDataRequest object will look for "SRS" instead of "CRS"

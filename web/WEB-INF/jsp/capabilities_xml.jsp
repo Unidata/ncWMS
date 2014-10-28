@@ -85,6 +85,7 @@ response.setDateHeader ("Expires", 0); //prevents caching at the proxy server
             <Layer>
                 <Title><c:out value="${dataset.title}"/></Title>
                 <c:forEach var="layer" items="${dataset.layers}">
+                <c:if test="${not layer.disabled}">
                 <Layer<c:if test="${layer.queryable}"> queryable="1"</c:if>>
                     <Name>${layer.name}</Name>
                     <Title><c:out value="${layer.title}"/></Title>
@@ -144,6 +145,7 @@ response.setDateHeader ("Expires", 0); //prevents caching at the proxy server
                         <Abstract>Contour style</Abstract>
                     </Style>
                 </Layer>
+                </c:if>
                 </c:forEach> <%-- End loop through variables --%>
             </Layer>
             </c:if> <%-- End if dataset is ready --%>

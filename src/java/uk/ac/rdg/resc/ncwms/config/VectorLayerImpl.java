@@ -100,6 +100,11 @@ final class VectorLayerImpl implements VectorLayer
     {
         return this.getVariable().isLogScaling();
     }
+    
+    @Override
+    public boolean isDisabled() {
+        return getVariable().isDisabled();
+    }
 
     @Override
     public ColorPalette getDefaultColorPalette()

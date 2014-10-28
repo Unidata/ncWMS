@@ -101,6 +101,11 @@ final class LayerImpl extends AbstractTimeAggregatedLayer
     {
         return this.dataset.isQueryable();
     }
+    
+    @Override
+    public boolean isDisabled() {
+        return getVariable().isDisabled();
+    }
 
     /**
      * Return true if we are to use logarithmic colour scaling by default for

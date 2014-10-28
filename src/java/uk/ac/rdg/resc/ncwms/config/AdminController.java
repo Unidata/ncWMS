@@ -219,7 +219,7 @@ public class AdminController extends MultiActionController
                 // new ID happens to be the same as an existing dataset.
                 ds.forceRefresh();
             }
-            
+
             // Now look for the new datasets. The logic below means that we don't have
             // to know in advance how many new datasets the user has created (or
             // how many spaces were available in admin_index.jsp)
@@ -245,7 +245,87 @@ public class AdminController extends MultiActionController
                 }
                 i++;
             }
-            
+
+            //############################################################################################
+            // Dynamic Services
+            // Added by ndp 4/6/2014
+            // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+            // First look through the existing dynamic Services for edits.
+            List<DynamicService> dynamicServicesToRemove = new ArrayList<DynamicService>();
+            // Keeps track of dataset IDs that have been changed
+            Map<DynamicService, String> changedDynamicServiceIds = new HashMap<DynamicService, String>();
+            for (DynamicService ds : this.config.getAllDynamicServices().values())
+            {
+                if (request.getParameter("dapService." + ds.getId() + ".remove") != null)
+                {
+                    dynamicServicesToRemove.add(ds);
+                }
+                else
+                {
+                    // Check to see if we have updated the ID
+                    String newId = request.getParameter("dynamicService." + ds.getId() + ".id").trim();
+                    if (!newId.equals(ds.getId()))
+                    {
+                        changedDynamicServiceIds.put(ds, newId);
+                        // The ID will be changed later
+                    }
+
+                    String serviceUrl = request.getParameter("dynamicService." + ds.getId() + ".serviceUrl");
+                    ds.setServiceUrl(serviceUrl);
+
+                    String matchRegex = request.getParameter("dynamicService." + ds.getId() + ".datasetIdMatch");
+                    ds.setDatasetIdMatch(matchRegex);
+
+                    String newDataReaderClass = request.getParameter("dynamicService." + ds.getId() + ".reader");
+                    ds.setDataReaderClass(newDataReaderClass);
+
+                    boolean disabled = request.getParameter("dynamicService." + ds.getId() + ".disabled") != null;
+                    ds.setDisabled(disabled);
+
+                    ds.setMoreInfoUrl(request.getParameter("dynamicService." + ds.getId() + ".moreinfo"));
+                    ds.setCopyrightStatement(request.getParameter("dynamicService." + ds.getId() + ".copyright"));
+                }
+            }
+            // Now we can remove the dynamic Services
+            for (DynamicService ds : dynamicServicesToRemove)
+            {
+                config.removeDynamicService(ds);
+            }
+            // Now we change the ids of the relevant dynamic Services
+            for (DynamicService ds : changedDynamicServiceIds.keySet())
+            {
+                config.changeDynamicServiceId(ds, changedDynamicServiceIds.get(ds));
+            }
+
+            // Now look for the new dynamic Services. The logic below means that we don't have
+            // to know in advance how many new dynamic Services the user has created (or
+            // how many spaces were available in admin_index.jsp)
+            i = 0;
+            while (request.getParameter("dynamicService.new" + i + ".id") != null)
+            {
+                // Look for non-blank ID fields
+                if (!request.getParameter("dynamicService.new" + i + ".id").trim().equals(""))
+                {
+                    DynamicService ds = new DynamicService();
+                    ds.setId(request.getParameter("dynamicService.new" + i + ".id"));
+                    ds.setServiceUrl(request.getParameter("dynamicService.new" + i + ".serviceUrl"));
+                    ds.setDatasetIdMatch(request.getParameter("dynamicService.new" + i + ".datasetIdMatch"));
+
+                    ds.setDataReaderClass(request.getParameter("dynamicService.new" + i + ".reader"));
+                    ds.setDisabled(request.getParameter("dynamicService.new" + i + ".disabled") != null);
+                    ds.setMoreInfoUrl(request.getParameter("dynamicService.new" + i + ".moreinfo"));
+                    ds.setCopyrightStatement(request.getParameter("dynamicService.new" + i + ".copyright"));
+                    // addDataset() contains code to ensure that the dataset
+                    // loads its metadata at the next opportunity
+                    config.addDynamicService(ds);
+                }
+                i++;
+            }
+            //############################################################################################
+
+
+
             // Set the properties of the cache
             config.getCache().setEnabled(request.getParameter("cache.enable") != null);
             config.getCache().setElementLifetimeMinutes(Integer.parseInt(request.getParameter("cache.elementLifetime")));
@@ -326,6 +406,8 @@ public class AdminController extends MultiActionController
                 var.setPaletteName(request.getParameter(layer.getId() + ".palette"));
                 var.setNumColorBands(Integer.parseInt(request.getParameter(layer.getId() + ".numColorBands")));
                 var.setScaling(request.getParameter(layer.getId() + ".scaling"));
+                boolean disabled = request.getParameter(layer.getId() + ".disabled") != null;
+                var.setDisabled(disabled);
             }
             // Saves the new configuration information to disk
             this.config.save();
@@ -352,5 +434,4 @@ public class AdminController extends MultiActionController
     {
         this.usageLogger = usageLogger;
     }
-    
 }

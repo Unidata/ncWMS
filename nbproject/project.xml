@@ -7,11 +7,11 @@
             <minimum-ant-version>1.6</minimum-ant-version>
             <web-module-libraries>
                 <library dirs="200">
-                    <file>${file.reference.jdom.jar}</file>
+                    <file>${file.reference.jdom-2.0.2.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.commons-codec-1.3.jar}</file>
+                    <file>${file.reference.commons-codec-20041127.091804.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
@@ -51,15 +51,15 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.commons-logging-1.1.jar}</file>
+                    <file>${file.reference.commons-logging-1.1.3.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.joda-time-1.6.jar}</file>
+                    <file>${file.reference.joda-time-2.3.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.grib-8.0.jar}</file>
+                    <file>${file.reference.grib-4.3.22.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
@@ -79,11 +79,11 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.ehcache-core-1.7.2.jar}</file>
+                    <file>${file.reference.ehcache-2.7.4.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.unidatacommon.jar}</file>
+                    <file>${file.reference.unidataCommon-4.2.20.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
@@ -91,19 +91,19 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.je-4.0.71.jar}</file>
+                    <file>${file.reference.je-5.0.73.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.netcdf-4.2.jar}</file>
+                    <file>${file.reference.netcdf-4.3.20.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.opendap-2.2.jar}</file>
+                    <file>${file.reference.opendap-2.2.2.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.protobuf-java-2.1.0.jar}</file>
+                    <file>${file.reference.protobuf-java-2.5.0.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">

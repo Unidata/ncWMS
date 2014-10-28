@@ -30,6 +30,7 @@ package uk.ac.rdg.resc.ncwms.config;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -38,6 +39,8 @@ import org.apache.commons.httpclient.auth.CredentialsNotAvailableException;
 import org.apache.commons.httpclient.auth.CredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ucar.nc2.util.net.HTTPSession;
 
 /**
  * Handles authentication with OPeNDAP servers.  This object is created by
@@ -60,9 +63,8 @@ public class NcwmsCredentialsProvider implements CredentialsProvider
      */
     public void init()
     {
-        HttpClient client = ucar.nc2.util.net.HttpClientManager.init(this, null);
-        opendap.dap.DConnect2.setHttpClient(client);
-        ucar.unidata.io.http.HTTPRandomAccessFile.setHttpClient(client);
+        HTTPSession.setGlobalCredentialsProvider(this);
+        HTTPSession.setGlobalUserAgent("ncWMS");
         logger.debug("NcwmsCredentialsProvider initialized");
     }
     

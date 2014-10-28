@@ -76,7 +76,8 @@ window.onload = function()
         // Load an image of the transect
         var server = activeLayer.server == '' ? 'wms' : activeLayer.server;
         var logscale = $('scaleSpacing').value == 'logarithmic';
-        var transectUrl = server + '?REQUEST=GetTransect' +
+        var transectUrl = server + (server.indexOf('?') > -1 ? '&' : '?') +
+        	'REQUEST=GetTransect' +
             '&LAYER=' + activeLayer.id +
             '&CRS=' + map.baseLayer.projection.toString() +
             '&ELEVATION=' + getZValue() +
@@ -491,8 +492,8 @@ function getFeatureInfo(e)
             params.url = activeLayer.server;
         }
         featureInfoUrl = ncwms.getFullRequestString(
-            params,
-            'wms' // We must always load from the home server
+            params
+            //,'wms' // We must always load from the home server
         );
         // Now make the call to GetFeatureInfo
         OpenLayers.loadURL(featureInfoUrl, '', this, function(response) {
@@ -530,7 +531,7 @@ function getFeatureInfo(e)
                     // This layer has a vertical axis with > 1 values
                     // TODO Construct the URL of the vertical profile plot
                     var profilePlotURL = activeLayer.server == '' ? 'wms' : activeLayer.server;
-                    profilePlotURL += '?REQUEST=GetVerticalProfile' +
+                    profilePlotURL += (activeLayer.server.indexOf('?') > -1 ? '&' : '?') + 'REQUEST=GetVerticalProfile' +
                                       '&LAYER=' + activeLayer.id +
                                       '&CRS=CRS:84' + // We frame the request in lon/lat coordinates
                                       '&TIME=' + isoTValue +
@@ -548,7 +549,7 @@ function getFeatureInfo(e)
                     var urlEls = serverAndParams[1].split('&');
                     // Replace the parameters as needed: we need to add the
                     // time range and change the format to PNG
-                    var newURL = server + '?';
+                    var newURL = server + (server.indexOf('?') > -1 ? '&' : '?');
                     for (var i = 0; i < urlEls.length; i++) {
                         if (urlEls[i].startsWith('TIME=')) {
                             newURL += '&TIME=' + $('firstFrame').innerHTML + '/' + $('lastFrame').innerHTML;
@@ -616,6 +617,7 @@ function layerSelected(layerDetails)
 {
     clearPopups();
     activeLayer = layerDetails;
+    activeLayer.server = decodeURIComponent((activeLayer.server+'').replace(/\+/g, '%20'));
     gotScaleRange = false;
     resetAnimation();
 
@@ -1208,6 +1210,7 @@ function loadAnimation()
         }
         // The animation will be displayed on the map
         $('autoZoom').style.visibility = 'hidden';
+        $('animation').style.visibility = 'hidden';
         $('hideAnimation').style.visibility = 'visible';
         // We show the "please wait" image then immediately load the animation
         $('throbber').style.visibility = 'visible'; // This will be hidden by animationLoaded()
@@ -1226,9 +1229,13 @@ function getMapExtent()
     var maxBounds = map.maxExtent;
     var top = Math.min(bounds.top, maxBounds.top);
     var bottom = Math.max(bounds.bottom, maxBounds.bottom);
-    var left = Math.max(bounds.left, maxBounds.left);
-    var right = Math.min(bounds.right, maxBounds.right);
-    return new OpenLayers.Bounds(left, bottom, right, top);
+    if(map.baseLayer.projection.getCode() == 'EPSG:4326') {
+    	return new OpenLayers.Bounds(bounds.left, bottom, bounds.right, top);
+    } else {
+    	var left = Math.max(bounds.left, maxBounds.left);
+    	var right = Math.min(bounds.right, maxBounds.right);
+    	return new OpenLayers.Bounds(left, bottom, right, top);
+    }
 }
 function animationLoaded()
 {
@@ -1254,6 +1261,7 @@ function hideAnimation()
 {
     setVisibleLayer(false);
     $('autoZoom').style.visibility = 'visible';
+    $('animation').style.visibility = 'visible';
     $('hideAnimation').style.visibility = 'hidden';
     $('mapOverlayDiv').style.visibility = 'hidden';
 }
@@ -1407,7 +1415,7 @@ function updatePaletteSelector()
     var height = 200;
     var server = activeLayer.server;
     if (server == '') server = 'wms';
-    var paletteUrl = server + '?REQUEST=GetLegendGraphic' +
+    var paletteUrl = server + (server.indexOf('?') > -1 ? '&' : '?') + 'REQUEST=GetLegendGraphic' +
         '&LAYER=' + activeLayer.id +
         '&COLORBARONLY=true' +
         '&WIDTH=1' +
@@ -1493,7 +1501,7 @@ function setPermalinkURL()
         var loc = window.top.location;
         var url = loc.protocol + '//' + loc.host + loc.pathname;
         url +=
-            '?menu=' + menu +
+        	(activeLayer.server.indexOf('?') > -1 ? '&' : '?') + 'menu=' + menu +
             '&layer=' + activeLayer.id +
             '&elevation=' + getZValue() +
             '&time=' + isoTValue +
@@ -1527,7 +1535,7 @@ function getGEarthURL()
     var gEarthURL = null;
     if (ncwms != null) {
         // Get a URL for a WMS request that covers the current map extent
-        var mapBounds = map.getExtent();
+        var mapBounds = getMapExtent();
         var urlEls = ncwms.getURL(mapBounds).split('&');
         gEarthURL = urlEls[0];
         for (var i = 1; i < urlEls.length; i++) {
@@ -1620,11 +1628,21 @@ function getIntersectionBBOX()
         // visible map extent
         var mapBboxEls = map.getExtent().toArray();
         // bbox is the bounding box of the currently-visible layer
-        var newBBOX = Math.max(mapBboxEls[0], bbox[0]) + ',';
-        newBBOX += Math.max(mapBboxEls[1], bbox[1]) + ',';
-        newBBOX += Math.min(mapBboxEls[2], bbox[2]) + ',';
-        newBBOX += Math.min(mapBboxEls[3], bbox[3]);
-        return newBBOX;
+        if(bbox[0] == -180.0 && bbox[2] == 180.0) {
+        	// This is a global bounding box (longitudinally-speaking), so we don't need to bother
+        	// about the overlap since all longitude positions are fine.
+        	var newBBOX = mapBboxEls[0] + ',';
+        	newBBOX += Math.max(mapBboxEls[1], bbox[1]) + ',';
+        	newBBOX += mapBboxEls[2] + ',';
+        	newBBOX += Math.min(mapBboxEls[3], bbox[3]);
+        	return newBBOX;
+        } else {
+        	var newBBOX = Math.max(mapBboxEls[0], bbox[0]) + ',';
+        	newBBOX += Math.max(mapBboxEls[1], bbox[1]) + ',';
+        	newBBOX += Math.min(mapBboxEls[2], bbox[2]) + ',';
+        	newBBOX += Math.min(mapBboxEls[3], bbox[3]);
+        	return newBBOX;
+        }
     } else {
         return map.getExtent().toBBOX();
     }

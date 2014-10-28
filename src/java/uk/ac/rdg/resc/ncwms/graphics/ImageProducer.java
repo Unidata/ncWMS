@@ -44,7 +44,6 @@ import gov.noaa.pmel.util.Range2D;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -347,22 +346,20 @@ public final class ImageProducer
 
         CartesianRenderer renderer = CartesianRenderer.getRenderer(cg, sgtGrid, attr);
 
-        BufferedImage image = new BufferedImage(picWidth, picHeight, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage image = new BufferedImage(picWidth, picHeight, BufferedImage.TYPE_BYTE_INDEXED, getColorModel());
         Graphics2D g = image.createGraphics();
         renderer.draw(g);
         
-//        int transpPixel = getColorModel().getRGB(0);
-//        System.out.println(transpPixel);
-//        for(int i=0; i<image.getWidth();i++) {
-//            for(int j=0; j<image.getHeight();j++) {
-//                int rgb = image.getRGB(i, j);
-//                System.out.println("rgb:"+rgb);
-//                if(rgb == transpPixel) {
-//                    image.setRGB(i, j, 0);
-//                }
-//            }            
-//        }
-//        
+        int transpPixel = getColorModel().getRGB(0);
+        for(int i=0; i<image.getWidth();i++) {
+            for(int j=0; j<image.getHeight();j++) {
+                int rgb = image.getRGB(i, j);
+                if(rgb == transpPixel) {
+                    image.setRGB(i, j, 0);
+                }
+            }            
+        }
+        
         return image;
     }
 

@@ -28,8 +28,6 @@
 
 package uk.ac.rdg.resc.ncwms.util;
 
-import uk.ac.rdg.resc.edal.util.Ranges;
-import uk.ac.rdg.resc.edal.util.Range;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
 import org.geotoolkit.referencing.CRS;
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
@@ -52,6 +51,7 @@ import org.joda.time.chrono.JulianChronology;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
 import uk.ac.rdg.resc.edal.cdm.CdmUtils;
 import uk.ac.rdg.resc.edal.coverage.grid.RegularGrid;
 import uk.ac.rdg.resc.edal.coverage.grid.impl.RegularGridImpl;
@@ -59,8 +59,10 @@ import uk.ac.rdg.resc.edal.geometry.BoundingBox;
 import uk.ac.rdg.resc.edal.geometry.impl.BoundingBoxImpl;
 import uk.ac.rdg.resc.edal.time.AllLeapChronology;
 import uk.ac.rdg.resc.edal.time.NoLeapChronology;
-import uk.ac.rdg.resc.ncwms.controller.GetMapDataRequest;
 import uk.ac.rdg.resc.edal.time.ThreeSixtyDayChronology;
+import uk.ac.rdg.resc.edal.util.Range;
+import uk.ac.rdg.resc.edal.util.Ranges;
+import uk.ac.rdg.resc.ncwms.controller.GetMapDataRequest;
 import uk.ac.rdg.resc.ncwms.exceptions.InvalidCrsException;
 import uk.ac.rdg.resc.ncwms.exceptions.InvalidDimensionValueException;
 import uk.ac.rdg.resc.ncwms.exceptions.WmsException;
@@ -224,7 +226,11 @@ public class WmsUtils
      */
     public static String createUniqueLayerName(String datasetId, String layerId)
     {
-        return datasetId + "/" + layerId;
+        if(datasetId == null || datasetId.equals("")) {
+            return layerId;
+        } else {
+            return datasetId + "/" + layerId;
+        }
     }
     
     /**
@@ -377,6 +383,7 @@ public class WmsUtils
         // This hashtable will store pairs of components in eastward-northward
         // order, keyed by the standard name for the vector quantity
         Map<String, ScalarLayer[]> components = new LinkedHashMap<String, ScalarLayer[]>();
+        Map<String, Boolean> realNorthEasts = new LinkedHashMap<String, Boolean>();
         for (ScalarLayer layer : scalarLayers) {
             if (layer.getTitle().contains("eastward")) {
                 String vectorKey = layer.getTitle().replaceFirst("eastward_", "");
@@ -386,6 +393,7 @@ public class WmsUtils
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[0] = layer;
+                realNorthEasts.put(vectorKey, true);
             } else if (layer.getTitle().contains("northward")) {
                 String vectorKey = layer.getTitle().replaceFirst("northward_", "");
                 // Look to see if we've already found the eastward component
@@ -394,6 +402,7 @@ public class WmsUtils
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[1] = layer;
+                realNorthEasts.put(vectorKey, true);
             } else if (layer.getTitle().contains("u-") && layer.getTitle().contains("component")) {
                 String vectorKey = layer.getTitle().replaceAll("u-", "").replaceAll("component", "").trim();
                 // Look to see if we've already found this component
@@ -402,6 +411,7 @@ public class WmsUtils
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[0] = layer;
+                realNorthEasts.put(vectorKey, false);
             } else if (layer.getTitle().contains("v-") && layer.getTitle().contains("component")) {
                 String vectorKey = layer.getTitle().replaceAll("v-", "").replaceAll("component", "").trim();
                 // Look to see if we've already found this component
@@ -410,6 +420,7 @@ public class WmsUtils
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[1] = layer;
+                realNorthEasts.put(vectorKey, false);
             } else if (layer.getTitle().contains("_x_")) {
                 String vectorKey = layer.getTitle().replaceAll("_x_", "_").trim();
                 // Look to see if we've already found this component
@@ -418,6 +429,7 @@ public class WmsUtils
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[0] = layer;
+                realNorthEasts.put(vectorKey, false);
             } else if (layer.getTitle().contains("_y_")) {
                 String vectorKey = layer.getTitle().replaceAll("_y_", "_").trim();
                 // Look to see if we've already found this component
@@ -426,6 +438,7 @@ public class WmsUtils
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[1] = layer;
+                realNorthEasts.put(vectorKey, false);
             } else if (layer.getTitle().contains("Zonal ")) {
                 String vectorKey = layer.getTitle().replaceFirst("Zonal ", "").trim();
                 // Look to see if we've already found this component
@@ -434,6 +447,7 @@ public class WmsUtils
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[0] = layer;
+                realNorthEasts.put(vectorKey, false);
             } else if (layer.getTitle().contains("Meridional ")) {
                 String vectorKey = layer.getTitle().replaceFirst("Meridional ", "").trim();
                 // Look to see if we've already found this component
@@ -442,6 +456,7 @@ public class WmsUtils
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[1] = layer;
+                realNorthEasts.put(vectorKey, false);
             }
         }
 
@@ -451,7 +466,7 @@ public class WmsUtils
             ScalarLayer[] comps = components.get(key);
             if (comps[0] != null && comps[1] != null) {
                 // We've found both components. Create a new Layer object
-                VectorLayer vec = new SimpleVectorLayer(key, comps[0], comps[1]);
+                VectorLayer vec = new SimpleVectorLayer(key, comps[0], comps[1], realNorthEasts.get(key));
                 vectorLayers.add(vec);
             }
         }

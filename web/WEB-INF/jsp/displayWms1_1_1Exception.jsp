@@ -19,6 +19,6 @@ response.setDateHeader ("Expires", 0); //prevents caching at the proxy server
                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                         xsi:schemaLocation="http://www.opengis.net/ogc http://schemas.opengis.net/wms/1.1.1/exceptions_1_1_1.xsd">
     <ServiceException<c:if test="${not empty exception.code}"> code="${exception.code}"</c:if>>
-        ${exception.message}
+        <c:out value="${exception.message}"></c:out>
     </ServiceException>
 </ServiceExceptionReport>

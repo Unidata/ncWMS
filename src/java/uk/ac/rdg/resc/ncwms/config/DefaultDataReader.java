@@ -31,9 +31,12 @@ package uk.ac.rdg.resc.ncwms.config;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ucar.nc2.dataset.NetcdfDataset;
+import ucar.nc2.dt.GridDataset;
 import uk.ac.rdg.resc.edal.cdm.CdmUtils;
 import uk.ac.rdg.resc.edal.coverage.CoverageMetadata;
 import uk.ac.rdg.resc.edal.coverage.domain.Domain;
@@ -62,7 +65,12 @@ public class DefaultDataReader extends DataReader
             // Open the dataset, using the cache for NcML aggregations
             nc = openDataset(location);
             // Read and return the metadata
-            return CdmUtils.readCoverageMetadata(CdmUtils.getGridDataset(nc));
+            GridDataset gridDataset = CdmUtils.getGridDataset(nc);
+            if (gridDataset == null) {
+                throw new IOException("The datset at " + location
+                        + " does not contain any gridded datasets.");
+            }
+            return CdmUtils.readCoverageMetadata(gridDataset);
         }
         finally
         {
