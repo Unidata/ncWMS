@@ -150,7 +150,12 @@ public class ScreenshotController extends MultiActionController
         }
 
         String urlStringBG = BGparam;
-        String urlStringFG = server + FGparam;
+        String urlStringFG;
+        if(FGparam.startsWith("http://") || FGparam.startsWith("https://")) {
+            urlStringFG = FGparam;
+        } else {
+            urlStringFG = server + FGparam;
+        }
 
         BoundingBox BBOX = new BoundingBox();
         String[] serverName = urlStringBG.split("\\?");

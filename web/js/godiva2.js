@@ -668,6 +668,19 @@ function layerSelected(layerDetails)
         }
         $('zValues').selectedIndex = nearestIndex;
     }
+    
+
+	$('stylePicker').options.length = 0;
+	for ( var j = 0; j < layerDetails.supportedStyles.length; j++) {
+		$('stylePicker').options[j] = new Option(
+				layerDetails.supportedStyles[j],
+				layerDetails.supportedStyles[j]);
+
+	}
+	$('stylePicker').disabled = false;
+
+	var style = typeof activeLayer.supportedStyles == 'undefined' ? 'boxfill'
+			: activeLayer.supportedStyles[0]; 
 
     // Only show the scale bar if the data are coming from an ncWMS server
     var scaleVisibility = isNcWMS ? 'visible' : 'hidden';
@@ -691,7 +704,7 @@ function layerSelected(layerDetails)
     }
 
     // (Re)set the selector of the number of colour bands
-    var numColorBandsOptions = [10, 20, 50, 100, 254];
+    var numColorBandsOptions = [10, 20, 50, 100, 253];
     var selectedColorBandsValue = numColorBandsOptions[numColorBandsOptions.length - 1];
     // Add an extra option and select it if it's the default for the selected layer
     if (typeof layerDetails.numColorBands != 'undefined' && !scaleLocked) {
@@ -1314,7 +1327,8 @@ function updateMap()
 
     // Get the default style for this layer.  There is some defensive programming here to
     // take old servers into account that don't advertise the supported styles
-    var style = typeof activeLayer.supportedStyles == 'undefined' ? 'boxfill' : activeLayer.supportedStyles[0];
+    var style = $('stylePicker').value;
+    
     if (paletteName != null) {
         style += '/' + paletteName;
     }

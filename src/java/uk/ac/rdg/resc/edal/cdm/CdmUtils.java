@@ -40,7 +40,9 @@ import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Map;
+
 import javax.imageio.ImageIO;
+
 import org.geotoolkit.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.geotoolkit.referencing.CRS;
 import org.geotoolkit.referencing.crs.DefaultGeographicCRS;
@@ -53,6 +55,7 @@ import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import ucar.ma2.Index;
 import ucar.nc2.Attribute;
 import ucar.nc2.Variable;
@@ -610,10 +613,7 @@ public final class CdmUtils
     {
         // Create the mapping between the requested points in the target domain
         // and the nearest cells in the source grid
-        long start = System.nanoTime();
         PixelMap pixelMap = new PixelMap(sourceGrid, targetDomain);
-        long finish = System.nanoTime();
-        System.out.printf("Pixel map created in %f ms%n", (finish - start) / 1.e6);
         
         if (pixelMap.isEmpty())
         {
