@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Alternate ncWMS build file" basedir=".">
+	<description>Alternate ncWMS build file without NetBeans dependencies</description>
+	<!--	
+	Use this build file if you are building in Eclipse, from the command line, etc.	
+
+	alt.build.properties must define java_compiler and tomcat_servlet_api_jar
+	java compiler is located in bin of JAVA_HOME
+	tomcat_servlet_api_jar should point to servlet-api.jar in tomcat installation directory	
+
+	example alt.build.properties file:
+	java_compiler=C:/Program Files/Java/jdk1.6.0_22/bin/javac.exe
+	tomcat_servlet_api_jar=C:/tomcat6/lib/servlet-api.jar	
+    
+    Author: Shane St Clair
+	-->
+	
+	<property file="alt.build.properties" />
+
+	<path id="ncWMS-classpath">
+		<fileset dir="web/WEB-INF/lib" includes="**/*.jar" />
+		<fileset file="${tomcat_servlet_api_jar}" />
+	</path>
+
+	<target name="clean">
+	    <delete dir="build"/>
+	</target>
+		
+	<target name="compile" depends="clean">
+		<javac
+			srcdir="src"
+			destdir="web/WEB-INF/classes"
+			fork="true"
+			includeAntRuntime="false"
+			executable="${java_compiler}"
+			classpathref="ncWMS-classpath"
+		/>
+	</target>
+
+	<target name="war" depends="compile">
+	    <mkdir dir="build/" />
+        <war destfile="build/ncWMS.war">
+			<fileset dir="web" />
+	    </war>	    	
+	</target>
+</project>

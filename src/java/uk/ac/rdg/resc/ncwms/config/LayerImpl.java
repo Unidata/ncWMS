@@ -193,7 +193,7 @@ final class LayerImpl extends AbstractTimeAggregatedLayer
      * @throws InvalidDimensionValueException if {@code time} is not a valid
      * DateTime for this layer.
      */
-    FilenameAndTimeIndex findAndCheckFilenameAndTimeIndex(DateTime time)
+    public FilenameAndTimeIndex findAndCheckFilenameAndTimeIndex(DateTime time)
         throws InvalidDimensionValueException
     {
         // Find and check the time and elevation values. Indices of -1 will be

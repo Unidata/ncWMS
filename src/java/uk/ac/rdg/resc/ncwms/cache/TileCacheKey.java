@@ -220,7 +220,7 @@ public class TileCacheKey implements Serializable
         if (Utils.isWgs84LonLat(grid.getCoordinateReferenceSystem()))
         {
             // Make sure we always use the same code for lat-lon projections
-            this.crsCode = "CRS:841";
+            this.crsCode = "CRS:84";
             // Constrain longitudes to range [-180,180] to canonicalise them
             this.bbox[0] = Utils.constrainLongitude180(this.bbox[0]);
             this.bbox[2] = Utils.constrainLongitude180(this.bbox[2]);

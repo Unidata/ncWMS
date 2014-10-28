@@ -50,6 +50,14 @@ public final class CollectionUtils {
     /**
      * Returns a new empty ArrayList for objects of a certain type
      */
+    public static <T> ArrayList<T> newArrayList(int initialCapacity)
+    {
+        return new ArrayList<T>(initialCapacity);
+    }
+
+    /**
+     * Returns a new empty ArrayList for objects of a certain type
+     */
     public static <T> ArrayList<T> newArrayList()
     {
         return new ArrayList<T>();

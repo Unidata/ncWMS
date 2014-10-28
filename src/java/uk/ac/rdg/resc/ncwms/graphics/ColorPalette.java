@@ -64,7 +64,7 @@ public class ColorPalette
      * (One would be hard pushed to distinguish more colours than this in a
      * typical scenario anyway.)
      */
-    public static final int MAX_NUM_COLOURS = 254;
+    public static final int MAX_NUM_COLOURS = 253;
 
     private static final Map<String, ColorPalette> palettes =
         new HashMap<String, ColorPalette>();
@@ -318,7 +318,7 @@ public class ColorPalette
      * is less than one or greater than {@link #MAX_NUM_COLOURS}.
      */
     public IndexColorModel getColorModel(int numColorBands, int opacity,
-        Color bgColor, boolean transparent)
+        Color bgColor, Color lowColor, Color highColor, boolean transparent)
     {
         // Gets an interpolated/subsampled version of this palette with the
         // given number of colour bands
@@ -332,10 +332,10 @@ public class ColorPalette
         else alpha = (int)(2.55 * opacity);
 
         // Now simply copy the target palette to arrays of r,g,b and a
-        byte[] r = new byte[numColorBands + 2];
-        byte[] g = new byte[numColorBands + 2];
-        byte[] b = new byte[numColorBands + 2];
-        byte[] a = new byte[numColorBands + 2];
+        byte[] r = new byte[numColorBands + 3];
+        byte[] g = new byte[numColorBands + 3];
+        byte[] b = new byte[numColorBands + 3];
+        byte[] a = new byte[numColorBands + 3];
         for (int i = 0; i < numColorBands; i++)
         {
             r[i] = (byte)newPalette[i].getRed();
@@ -350,11 +350,29 @@ public class ColorPalette
         b[numColorBands] = (byte)bgColor.getBlue();
         a[numColorBands] = transparent ? 0 : (byte)alpha;
 
-        // The next represents out-of-range pixels (black)
-        r[numColorBands + 1] = 0;
-        g[numColorBands + 1] = 0;
-        b[numColorBands + 1] = 0;
-        a[numColorBands + 1] = (byte)alpha;
+        if(lowColor != null) {  
+            r[numColorBands + 1] = (byte) lowColor.getRed();
+            g[numColorBands + 1] = (byte) lowColor.getGreen();
+            b[numColorBands + 1] = (byte) lowColor.getBlue();
+            a[numColorBands + 1] = (byte) lowColor.getAlpha();
+        } else {
+            r[numColorBands + 1] = r[0];
+            g[numColorBands + 1] = g[0];
+            b[numColorBands + 1] = b[0];
+            a[numColorBands + 1] = a[0];
+        }
+
+        if(highColor != null) {
+            r[numColorBands + 2] = (byte) highColor.getRed();
+            g[numColorBands + 2] = (byte) highColor.getGreen();
+            b[numColorBands + 2] = (byte) highColor.getBlue();
+            a[numColorBands + 2] = (byte) highColor.getAlpha();
+        } else {
+            r[numColorBands + 2] = r[numColorBands - 1];
+            g[numColorBands + 2] = g[numColorBands - 1];
+            b[numColorBands + 2] = b[numColorBands - 1];
+            a[numColorBands + 2] = a[numColorBands - 1];
+        }
 
         // Now we can create the color model
         return new IndexColorModel(8, r.length, r, g, b, a);

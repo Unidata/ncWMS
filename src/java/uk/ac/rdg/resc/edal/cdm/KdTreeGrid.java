@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import uk.ac.rdg.resc.edal.coverage.grid.GridCoordinates;
-import uk.ac.rdg.resc.edal.geometry.HorizontalPosition;
 import uk.ac.rdg.resc.edal.geometry.LonLatPosition;
 import java.util.Map;
 import java.util.Set;
@@ -56,10 +55,10 @@ import uk.ac.rdg.resc.edal.cdm.kdtree.Point;
 import uk.ac.rdg.resc.edal.coverage.grid.HorizontalGrid;
 import uk.ac.rdg.resc.edal.coverage.grid.impl.GridCoordinatesImpl;
 import uk.ac.rdg.resc.edal.coverage.grid.impl.RegularGridImpl;
+import uk.ac.rdg.resc.edal.geometry.impl.LonLatPositionImpl;
 import uk.ac.rdg.resc.edal.util.CollectionUtils;
 import uk.ac.rdg.resc.edal.util.Range;
 import uk.ac.rdg.resc.edal.util.Ranges;
-import uk.ac.rdg.resc.edal.util.Utils;
 import uk.ac.rdg.resc.ncwms.graphics.ColorPalette;
 import uk.ac.rdg.resc.ncwms.graphics.ImageProducer;
 import uk.ac.rdg.resc.ncwms.graphics.ImageProducer.Style;
@@ -145,11 +144,9 @@ final class KdTreeGrid extends AbstractCurvilinearGrid
      * lat-lon point is not contained within this layer's domain.
      */
     @Override
-    public GridCoordinates findNearestGridPoint(HorizontalPosition pos)
+    protected GridCoordinates findNearestGridPoint(double lon, double lat)
     {
-        LonLatPosition lonLatPos = Utils.transformToWgs84LonLat(pos);
-        double lon = lonLatPos.getLongitude();
-        double lat = lonLatPos.getLatitude();
+        LonLatPosition lonLatPos = new LonLatPositionImpl(lon, lat);
 
         // Find a set of candidate nearest-neighbours from the kd-tree
         List<Point> nns = this.kdTree.approxNearestNeighbour(lat, lon, this.max_distance);

@@ -334,8 +334,8 @@ public class WmsUtils
         else if (layer instanceof VectorLayer)
         {
             VectorLayer vecLayer = (VectorLayer)layer;
-            List<Float> eastDataSample = readDataSample(vecLayer.getEastwardComponent());
-            List<Float> northDataSample = readDataSample(vecLayer.getEastwardComponent());
+            List<Float> eastDataSample = readDataSample(vecLayer.getXComponent());
+            List<Float> northDataSample = readDataSample(vecLayer.getYComponent());
             List<Float> magnitudes = WmsUtils.getMagnitudes(eastDataSample, northDataSample);
             return Ranges.findMinMax(magnitudes);
         }
@@ -373,31 +373,72 @@ public class WmsUtils
      * ScalarLayers, by examining the layer Titles (usually CF standard names)
      * and looking for "eastward_X"/"northward_X" pairs.
      */
-    public static List<VectorLayer> findVectorLayers(Collection<? extends ScalarLayer> scalarLayers)
-    {
+    public static List<VectorLayer> findVectorLayers(Collection<? extends ScalarLayer> scalarLayers) {
         // This hashtable will store pairs of components in eastward-northward
         // order, keyed by the standard name for the vector quantity
         Map<String, ScalarLayer[]> components = new LinkedHashMap<String, ScalarLayer[]>();
-        for (ScalarLayer layer : scalarLayers)
-        {
-            if (layer.getTitle().contains("eastward"))
-            {
+        for (ScalarLayer layer : scalarLayers) {
+            if (layer.getTitle().contains("eastward")) {
                 String vectorKey = layer.getTitle().replaceFirst("eastward_", "");
                 // Look to see if we've already found the northward component
-                if (!components.containsKey(vectorKey))
-                {
+                if (!components.containsKey(vectorKey)) {
                     // We haven't found the northward component yet
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[0] = layer;
-            }
-            else if (layer.getTitle().contains("northward"))
-            {
+            } else if (layer.getTitle().contains("northward")) {
                 String vectorKey = layer.getTitle().replaceFirst("northward_", "");
                 // Look to see if we've already found the eastward component
-                if (!components.containsKey(vectorKey))
-                {
+                if (!components.containsKey(vectorKey)) {
                     // We haven't found the eastward component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[1] = layer;
+            } else if (layer.getTitle().contains("u-") && layer.getTitle().contains("component")) {
+                String vectorKey = layer.getTitle().replaceAll("u-", "").replaceAll("component", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[0] = layer;
+            } else if (layer.getTitle().contains("v-") && layer.getTitle().contains("component")) {
+                String vectorKey = layer.getTitle().replaceAll("v-", "").replaceAll("component", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[1] = layer;
+            } else if (layer.getTitle().contains("_x_")) {
+                String vectorKey = layer.getTitle().replaceAll("_x_", "_").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[0] = layer;
+            } else if (layer.getTitle().contains("_y_")) {
+                String vectorKey = layer.getTitle().replaceAll("_y_", "_").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[1] = layer;
+            } else if (layer.getTitle().contains("Zonal ")) {
+                String vectorKey = layer.getTitle().replaceFirst("Zonal ", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
+                    components.put(vectorKey, new ScalarLayer[2]);
+                }
+                components.get(vectorKey)[0] = layer;
+            } else if (layer.getTitle().contains("Meridional ")) {
+                String vectorKey = layer.getTitle().replaceFirst("Meridional ", "").trim();
+                // Look to see if we've already found this component
+                if (!components.containsKey(vectorKey)) {
+                    // We haven't found this component yet
                     components.put(vectorKey, new ScalarLayer[2]);
                 }
                 components.get(vectorKey)[1] = layer;
@@ -406,12 +447,10 @@ public class WmsUtils
 
         // Now add the vector quantities to the collection of Layer objects
         List<VectorLayer> vectorLayers = new ArrayList<VectorLayer>();
-        for (String key : components.keySet())
-        {
+        for (String key : components.keySet()) {
             ScalarLayer[] comps = components.get(key);
-            if (comps[0] != null && comps[1] != null)
-            {
-                // We've found both components.  Create a new Layer object
+            if (comps[0] != null && comps[1] != null) {
+                // We've found both components. Create a new Layer object
                 VectorLayer vec = new SimpleVectorLayer(key, comps[0], comps[1]);
                 vectorLayers.add(vec);
             }

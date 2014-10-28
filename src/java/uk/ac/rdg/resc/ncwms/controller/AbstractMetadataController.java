@@ -303,8 +303,8 @@ public abstract class AbstractMetadataController
         else if (layer instanceof VectorLayer)
         {
             VectorLayer vecLayer = (VectorLayer)layer;
-            List<Float> east = vecLayer.getEastwardComponent().readHorizontalPoints(tValue, zValue, grid);
-            List<Float> north = vecLayer.getNorthwardComponent().readHorizontalPoints(tValue, zValue, grid);
+            List<Float> east = vecLayer.getXComponent().readHorizontalPoints(tValue, zValue, grid);
+            List<Float> north = vecLayer.getYComponent().readHorizontalPoints(tValue, zValue, grid);
             magnitudes = WmsUtils.getMagnitudes(east, north);
         }
         else
