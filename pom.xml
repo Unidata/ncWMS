@@ -8,11 +8,7 @@
   <artifactId>ncwms</artifactId>
   <packaging>jar</packaging>
   <name>ncWMS</name>
-  <!--version>1.0.tds.4.3.20120807.1030</version-->
-  <!-- version>1.0.tds.4.3.20121211.1130</version-->
-  <!-- version>1.0.tds.4.3.20130116.1130</version-->
-  <!-- version>1.0.tds.4.3.20130402.1500</version-->
-  <version>1.0.tds.4.4.3-SNAPSHOT</version>
+  <version>1.2.tds.4.5.4-SNAPSHOT</version>
   <description>
     ncWMS is an OGC Web Map Service (WMS) for geospatial data that are
     stored in CF-compliant NetCDF files.
@@ -34,9 +30,9 @@
 
   <distributionManagement>
     <repository>
-      <id>unidata-3rdparty</id>
-      <name>Unidata 3rd-Party Repository</name>
-      <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-3rdparty/</url>
+      <id>unidata-releases</id>
+      <name>UNIDATA Releases</name>
+      <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
     </repository>
     <snapshotRepository>
       <id>unidata-snapshots</id>
@@ -74,61 +70,71 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.geotoolkit</groupId>
-      <artifactId>geotk-referencing</artifactId>
-      <version>3.17</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jfree</groupId>
-      <artifactId>jcommon</artifactId>
-      <version>1.0.17</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jfree</groupId>
-      <artifactId>jfreechart</artifactId>
-      <version>1.0.14</version>
-    </dependency>
-    <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <version>2.2</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.jsi</groupId>
-      <artifactId>jsi</artifactId>
-      <version>1.0b8</version>
-    </dependency>
-    <dependency>
-      <groupId>json-taglib</groupId>
-      <artifactId>json-taglib</artifactId>
-      <version>0.4.1</version>
-      <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
       <groupId>edu.ucar</groupId>
       <artifactId>cdm</artifactId>
       <version>${cdm.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.khelekore</groupId>
-      <artifactId>prtree</artifactId>
-      <version>1.4</version>
+      <groupId>org.geotoolkit</groupId>
+      <artifactId>geotk-referencing</artifactId>
+      <version>${org.geotoolkit.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jcommon</artifactId>
+      <version>${org.jfree.jcommon.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jfreechart</artifactId>
+      <version>${org.jfree.jfreechart.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>${joda-time.version}</version>
     </dependency>
 
-    <!-- servlet -->
+    <!-- Java Spatial Index (RTree) library -->
+    <dependency>
+      <groupId>net.sourceforge.jsi</groupId>
+      <artifactId>jsi</artifactId>
+      <version>${net.sourceforge.jsi.version}</version>
+    </dependency>
+
+    <!-- Priority R-Tree -->
+    <dependency>
+      <groupId>org.khelekore</groupId>
+      <artifactId>prtree</artifactId>
+      <version>${org.khelekore.prtree.version}</version>
+    </dependency>
+
+    <!-- Scientific Graphics Toolkit from NOAA/PMEL (Don Denbo)
+         Version 3.0 (the latest) was released in Sept 2003
+        http://www.epic.noaa.gov/java/sgt/ -->
+    <dependency>
+      <groupId>gov.noaa.pmel</groupId>
+      <artifactId>SGT_toolkit</artifactId>
+      <version>${gov.noaa.pmel.SGT_toolkit.version}</version>
+    </dependency>
+
+    <!-- GNU Trove: High performance collections for Java.
+         Now at https://bitbucket.org/robeden/trove (version 3.0.3, as of 3 Dec 2014)
+         (Formerly at http://sourceforge.net/projects/trove4j/)
+     -->
+    <dependency>
+      <groupId>net.sf.trove4j</groupId>
+      <artifactId>trove4j</artifactId>
+      <version>${net.sf.trove4j.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- Servlet and JSP -->
     <dependency>
     	<groupId>javax.servlet</groupId>
     	<artifactId>javax.servlet-api</artifactId>
     	<version>${javax.servlet.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-    	<groupId>javax.servlet</groupId>
-    	<artifactId>javax.servlet-api</artifactId>
-    	<version>3.0.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -137,68 +143,20 @@
       <version>${javax.servlet.jstl.version}</version>
       <scope>runtime</scope>
     </dependency>
-
-    <!-- dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>jstl</artifactId>
-      <version>1.2</version>
+    <dependency>
+      <groupId>json-taglib</groupId>
+      <artifactId>json-taglib</artifactId>
+      <version>${atg.taglib.json.version}</version>
       <scope>runtime</scope>
-    </dependency -->
+    </dependency>
+
 
     <!-- logging -->
     <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-api</artifactId>
-      <version>${log4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <version>${log4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
-      <version>${log4j.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>  <!-- Adapts apache commons to slf4j, and so replaces commons-logging.jar -->
-       <groupId>org.slf4j</groupId>
-       <artifactId>jcl-over-slf4j</artifactId>
-       <version>${org.slf4j.version}</version>
-       <scope>runtime</scope>
-     </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${org.slf4j.version}</version>
     </dependency>
-    <dependency>  <!-- Should never be needed at compile time. -->
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-      <version>${org.slf4j.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-
-
-
-    <!-- dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.5</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-      <version>1.7.5</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.5</version>
-      <scope>runtime</scope>
-    </dependency -->
 
     <!-- spring -->
      <dependency>
@@ -228,38 +186,20 @@
        <artifactId>spring-webmvc</artifactId>
        <version>${org.springframework.version}</version>
      </dependency>
-     <dependency>
+
+    <!-- Testing frameworks -->
+     <!--dependency>
        <groupId>org.springframework</groupId>
        <artifactId>spring-test</artifactId>
        <version>${org.springframework.version}</version>
-     </dependency>
-
-    <!-- dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webmvc</artifactId>
-      <version>3.0.5.RELEASE</version>
-    </dependency -->
-
-    <dependency>
-      <groupId>net.sf.trove4j</groupId>
-      <artifactId>trove4j</artifactId>
-      <version>2.0.2</version>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
+     </dependency-->
+    <!--dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.5</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
-    </dependency>
+    </dependency-->
     
-    <dependency>
-      <groupId>gov.noaa.pmel</groupId>
-      <artifactId>SGT_toolkit</artifactId>
-      <version>3.0</version>
-    </dependency>    
-
     <!-- ========== Needed for standalone ncWMS not for TDS/ncWMS. ========== -->
 
     <!--dependency>
@@ -302,12 +242,6 @@
       <version>${simple-xml.version}</version>
     </dependency-->
 
-    <!-- The Jakara ORO project has been retired and archived.  -->
-    <!--dependency>
-      <groupId>oro</groupId>
-      <artifactId>oro</artifactId>
-      <version>2.0.8</version>
-    </dependency-->
     <!-- END ========== Needed for standalone ncWMS not for TDS/ncWMS. ========== -->
 
   </dependencies>
@@ -424,8 +358,35 @@
   </build>
 
   <properties>
-    <acegi-security.version>1.0.7</acegi-security.version>
-    <simple-xml.version>2.6.4</simple-xml.version>
+    <cdm.version>4.5.4-SNAPSHOT</cdm.version>
+
+    <org.geotoolkit.version>3.21</org.geotoolkit.version>
+
+    <net.sourceforge.jsi.version>1.0b8</net.sourceforge.jsi.version>
+    <org.khelekore.prtree.version>1.4</org.khelekore.prtree.version>
+    <net.sf.trove4j.version>2.1.0</net.sf.trove4j.version>
+    <gov.noaa.pmel.SGT_toolkit.version>3.0</gov.noaa.pmel.SGT_toolkit.version>
+
+    <!--acegi-security.version>1.0.7</acegi-security.version>
+    <simple-xml.version>2.6.4</simple-xml.version-->
+
+    <joda-time.version>2.2</joda-time.version>
+
+    <org.jfree.jcommon.version>1.0.23</org.jfree.jcommon.version>
+    <org.jfree.jfreechart.version>1.0.19</org.jfree.jfreechart.version>
+
+    <!-- jakarta oro only used in ncwms.config
+    <oro.version>2.0.8</oro.version>
+     -->
+
+    <!--log4j.version>2.1</log4j.version-->
+    <org.slf4j.version>1.7.7</org.slf4j.version>
+
+    <org.springframework.version>3.2.12.RELEASE</org.springframework.version>
+
+    <javax.servlet.version>3.1.0</javax.servlet.version>
+    <javax.servlet.jstl.version>1.2</javax.servlet.jstl.version>
+    <atg.taglib.json.version>0.4.1</atg.taglib.json.version>
 
     <maven-compiler-plugin.version>2.5</maven-compiler-plugin.version>
     <maven-javadoc-plugin.version>2.8.1</maven-javadoc-plugin.version>
@@ -434,13 +395,7 @@
     <maven-war-plugin.version>2.2</maven-war-plugin.version>
     <maven-release-plugin.version>2.2.1</maven-release-plugin.version>
 
-    <cdm.version>4.4.3-SNAPSHOT</cdm.version>
-    <javax.servlet.version>3.0.1</javax.servlet.version>
-    <javax.servlet.jstl.version>1.2</javax.servlet.jstl.version>
-    <log4j.version>2.0-beta9</log4j.version>
-    <org.slf4j.version>1.7.5</org.slf4j.version>
-    <org.springframework.version>3.2.3.RELEASE</org.springframework.version>
-
+    <junit.version>4.5</junit.version>
   </properties>
 
 </project>

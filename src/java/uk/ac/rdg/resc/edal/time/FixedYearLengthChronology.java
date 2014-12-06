@@ -56,7 +56,7 @@ import org.joda.time.field.ZeroIsMaxDateTimeField;
  * <p><i>Note: Much of this code was copied from the package-private
  * BasicChronology.</i></p>
  * @author Jon Blower
- * @see http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/cf-conventions.html#calendar
+ * @see "http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/cf-conventions.html#calendar"
  */
 abstract class FixedYearLengthChronology extends BaseChronology {
 
@@ -143,7 +143,9 @@ abstract class FixedYearLengthChronology extends BaseChronology {
         @Override
         public int get(long instant) {
             // We need to use Math.floor() to deal with negative instants
-            return (int)Math.floor(instant * 1.0 / this.getDurationField().getUnitMillis()) + 1970;
+          long millis = this.getDurationField().getUnitMillis();
+          double imillis = millis == 0 ? 0 : 1.0 / millis;
+          return (int) Math.floor(instant * imillis) + 1970;
         }
 
         /** Returns null: the field has no range */
