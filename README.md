@@ -72,7 +72,7 @@ some work in ncWMS code.
 | javax.servlet:jstl                 | S   |              |       1.2 |      - |       1.2 |       1.2 |
 | json-taglib:json-taglib            | S   |              |     0.4.1 |      - |     0.4.1 |     0.4.1 |
 
-#### Note 1 <a name="Note_1"></a>
+####  <a name="Note_1"></a>Note 1
 
 Due to circular dependencies and the fact that edal.time is not a separate artifact:
 
@@ -83,20 +83,20 @@ Hmmm. I think we used to build a separate edal.time library from the Uni
 ncWMS repo and deploy that to the Unidata Maven repo. (Yes, it is in
 buildTds.xml but evidently didn't make it over to the Maven build.)
 
-#### Note 2 <a name="Note_2"></a>
+#### <a name="Note_2"></a> Note 2
  
 PRTree 1.4 is latest version compatible with ncWMS (1.4 is designed
 for 2-D data, 1.5+ is for n-D data and has API changes
 
-#### Note 3 <a name="Note_3"></a>
+#### <a name="Note_3"></a> Note 3
 Trove4j 2.0.4, 2.1.0, 3.0.3
 https://bitbucket.org/robeden/trove/
 http://trove.starlight-systems.com/
 
-#### Note 4 <a name="Note_4"></a>
+#### <a name="Note_4"></a> Note 4
 SGT from NOAA/PMEL was last release (v3.0) in Sept 2003
 
-#### Note 5 <a name="Note_5"></a>
+#### <a name="Note_5"></a> Note 5
 Apache Jakarta Oro no longer supported (in Apache Attic).
 They suggest using newer stuff in Java libraries.
 
