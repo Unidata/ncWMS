@@ -2,22 +2,32 @@
 
 This ncWMS code repository is used for building the subset of [ncWMS]
 used by the THREDDS Data Server ([TDS]).
-It both tracks the main ncWMS subversion repository ([svn][ncWMS_repo])([browse][ncWMS_repo_browse]), or at least
-the main milestones in that repository)= and any changes or additions
-needed for integration in the TDS.
+It both tracks the main ncWMS subversion repository
+(svn://svn.code.sf.net/p/ncwms)(browsable [here][ncWMS_repo_browse] and on
+[Trac][ncWMS_repo_browse_trac]), or at least the main milestones in that
+repository, and any changes or additions needed for integration in the TDS.
 
 The THREDDS team and the ncWMS team work closely (and with the larger
 ncWMS community) to ensure that changes are shared as appropriate.
 
-## Resources
+## Versions, Tags, and Branches
 
-- ncWMS
-  - [ncWMS project page][ncWMS] (and [Sourceforge page][ncWMS_sourceforge])
-  - [ncWMS Subversion repository][ncWMS_repo]
-    - [Browsing code][ncWMS_repo_browse] (and on [Trac][ncWMS_repo_browse_trac])  
-- [TDS project page][TDS]
+### Main ncWMS repository
 
-##External Libraries
+Major milestones from ncWMS 1.x development are tracked on the "*track-ncWMS-svn*"
+branch (including 1.0, 1.1, 1.1.1, 1.2, and various other "versions" used by TDS).
+
+### Tags
+
+*v1.0.tds.4.3.20121211.1130*:
+Used in TDS version 4.3 
+
+### Branches
+
+*upgrade_for_TDS_4.5.4* 
+
+
+## External Libraries
 
 PRTree is an implementation of a priority R-Tree, a spatial index.
 It is available from the [PRTree web site][PRTree] as well as from the [sk89q.com
@@ -31,11 +41,10 @@ The ncWMS code requires PRTree 1.4 (as of 3 Dec 2014, SVN rev 1085).
 Added support for n-D data (from 2-D only) in PRTree 1.5 would require
 some work in ncWMS code.
 
-## Updating Dependency Versions
+### Updating Dependency Versions to work with TDS 4.5.4
 
-|------------------------------------+-----+--------------+-----------+--------+-----------+-----------|
 | name                               | Req | SuppliedBy   |   TDS ver |  avail | Uni ncWMS | ncWMS ver |
-|------------------------------------+-----+--------------+-----------+--------+-----------+-----------|
+|:-------------------------------|-----:|--------------:|-----------:|--------:|-----------:|-----------:|
 | edu.ucar:cdm                       | Y   |              |     4.5.4 |        |     4.5.4 |     4.5.3 |
 | - edal.time               [Note 1](#Note_1) |     |              |   CDM ver | ?same? |   CDM ver | ncWMS ver |
 | org.geotoolkit:geotk-referencing   | Y   | TDS was 3.21 | Uni ncWMS |   3.21 |      3.21 |      3.17 |
@@ -62,9 +71,8 @@ some work in ncWMS code.
 | javax.servlet:javax.servlet-api    | S   |              |    3.0.1+ |  3.1.0 |     3.1.0 |       2.4 |
 | javax.servlet:jstl                 | S   |              |       1.2 |      - |       1.2 |       1.2 |
 | json-taglib:json-taglib            | S   |              |     0.4.1 |      - |     0.4.1 |     0.4.1 |
-|------------------------------------+-----+--------------+-----------+--------+-----------+-----------|
 
-### Note 1 <a name="Note_1"></a>
+#### Note 1 <a name="Note_1"></a>
 
 Due to circular dependencies and the fact that edal.time is not a separate artifact:
 
@@ -75,28 +83,27 @@ Hmmm. I think we used to build a separate edal.time library from the Uni
 ncWMS repo and deploy that to the Unidata Maven repo. (Yes, it is in
 buildTds.xml but evidently didn't make it over to the Maven build.)
 
-### Note 2 <a name="Note_2"></a>
+#### Note 2 <a name="Note_2"></a>
  
 PRTree 1.4 is latest version compatible with ncWMS (1.4 is designed
 for 2-D data, 1.5+ is for n-D data and has API changes
 
-### Note 3 <a name="Note_3"></a>
+#### Note 3 <a name="Note_3"></a>
 Trove4j 2.0.4, 2.1.0, 3.0.3
 https://bitbucket.org/robeden/trove/
 http://trove.starlight-systems.com/
 
-### Note 4 <a name="Note_4"></a>
+#### Note 4 <a name="Note_4"></a>
 SGT from NOAA/PMEL was last release (v3.0) in Sept 2003
 
-### Note 5 <a name="Note_5"></a>
+#### Note 5 <a name="Note_5"></a>
 Apache Jakarta Oro no longer supported (in Apache Attic).
 They suggest using newer stuff in Java libraries.
 
 [TDS]: http://www.unidata.ucar.edu/software/thredds/current/tds
 
 [ncWMS]:   http://www.resc.rdg.ac.uk/trac/ncWMS
-[ncWMS_sourceforge]:  (on SourceForge) http://sourceforge.net/projects/ncwms/
-[ncWMS_repo]:  svn://svn.code.sf.net/p/ncwms
+[ncWMS_sourceforge]: http://sourceforge.net/projects/ncwms/
 [ncWMS_repo_browse]: http://sourceforge.net/p/ncwms/code/HEAD/tree/
 [ncWMS_repo_browse_trac]: http://www.resc.rdg.ac.uk/trac/ncWMS/browser
 
