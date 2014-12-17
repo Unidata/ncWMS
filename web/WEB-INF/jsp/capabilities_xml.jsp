@@ -146,6 +146,11 @@ response.setDateHeader ("Expires", 0); //prevents caching at the proxy server
                     </Style>
                     </c:forEach>
                     </c:forEach>
+                    <Style>
+                        <Name>contour/</Name>
+                        <Title>contour/</Title>
+                        <Abstract>Contour style</Abstract>
+                    </Style>
                 </Layer>
                 </c:forEach> <%-- End loop through variables --%>
             </Layer>

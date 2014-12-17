@@ -1208,6 +1208,7 @@ function loadAnimation()
         }
         // The animation will be displayed on the map
         $('autoZoom').style.visibility = 'hidden';
+        $('animation').style.visibility = 'hidden';
         $('hideAnimation').style.visibility = 'visible';
         // We show the "please wait" image then immediately load the animation
         $('throbber').style.visibility = 'visible'; // This will be hidden by animationLoaded()
@@ -1226,9 +1227,13 @@ function getMapExtent()
     var maxBounds = map.maxExtent;
     var top = Math.min(bounds.top, maxBounds.top);
     var bottom = Math.max(bounds.bottom, maxBounds.bottom);
+    if(map.baseLayer.projection.getCode() == 'EPSG:4326') {
+    	return new OpenLayers.Bounds(bounds.left, bottom, bounds.right, top);
+    } else {
     var left = Math.max(bounds.left, maxBounds.left);
     var right = Math.min(bounds.right, maxBounds.right);
     return new OpenLayers.Bounds(left, bottom, right, top);
+}
 }
 function animationLoaded()
 {
@@ -1254,6 +1259,7 @@ function hideAnimation()
 {
     setVisibleLayer(false);
     $('autoZoom').style.visibility = 'visible';
+    $('animation').style.visibility = 'visible';
     $('hideAnimation').style.visibility = 'hidden';
     $('mapOverlayDiv').style.visibility = 'hidden';
 }
@@ -1527,7 +1533,7 @@ function getGEarthURL()
     var gEarthURL = null;
     if (ncwms != null) {
         // Get a URL for a WMS request that covers the current map extent
-        var mapBounds = map.getExtent();
+        var mapBounds = getMapExtent();
         var urlEls = ncwms.getURL(mapBounds).split('&');
         gEarthURL = urlEls[0];
         for (var i = 1; i < urlEls.length; i++) {
@@ -1620,11 +1626,21 @@ function getIntersectionBBOX()
         // visible map extent
         var mapBboxEls = map.getExtent().toArray();
         // bbox is the bounding box of the currently-visible layer
+        if(bbox[0] == -180.0 && bbox[2] == 180.0) {
+        	// This is a global bounding box (longitudinally-speaking), so we don't need to bother
+        	// about the overlap since all longitude positions are fine.
+        	var newBBOX = mapBboxEls[0] + ',';
+        	newBBOX += Math.max(mapBboxEls[1], bbox[1]) + ',';
+        	newBBOX += mapBboxEls[2] + ',';
+        	newBBOX += Math.min(mapBboxEls[3], bbox[3]);
+        	return newBBOX;
+        } else {
         var newBBOX = Math.max(mapBboxEls[0], bbox[0]) + ',';
         newBBOX += Math.max(mapBboxEls[1], bbox[1]) + ',';
         newBBOX += Math.min(mapBboxEls[2], bbox[2]) + ',';
         newBBOX += Math.min(mapBboxEls[3], bbox[3]);
         return newBBOX;
+        }
     } else {
         return map.getExtent().toBBOX();
     }

@@ -13,6 +13,6 @@ response.setDateHeader ("Expires", 0); //prevents caching at the proxy server
 <json:object>
     <json:object name="exception">
         <json:property name="className" value="${exception.cause.class.name}"/>
-        <json:property name="message" value="${exception.cause.message}"/>
+        <json:property name="message" value="<c:out value="${exception.cause.message}"></c:out>"/>
     </json:object>
 </json:object>

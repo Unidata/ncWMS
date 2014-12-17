@@ -57,6 +57,7 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.time.FixedMillisecond;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -96,7 +97,7 @@ public class Charting
     {
         TimeSeries ts = new TimeSeries("Data");
         for (Entry<DateTime, Float> entry : tsData.entrySet()) {
-            ts.add(new Millisecond(entry.getKey().toDate()), entry.getValue());
+            ts.add(new FixedMillisecond(entry.getKey().toDate()), entry.getValue());
         }
         TimeSeriesCollection xydataset = new TimeSeriesCollection();
         xydataset.addSeries(ts);

@@ -48,6 +48,7 @@ import org.geotoolkit.referencing.crs.DefaultGeographicCRS;
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.chrono.GregorianChronology;
 import org.joda.time.chrono.JulianChronology;
 import org.opengis.coverage.grid.GridCoordinates;
 import org.opengis.metadata.extent.GeographicBoundingBox;
@@ -554,11 +555,8 @@ public final class CdmUtils
     {
         // Create the mapping between the requested points in the target domain
         // and the nearest cells in the source grid
-        long start = System.nanoTime();
         PixelMap pixelMap = new PixelMap(sourceGrid, targetDomain);
-        long finish = System.nanoTime();
-        System.out.printf("Pixel map created in %f ms%n", (finish - start) / 1.e6);
-        
+
         if (pixelMap.isEmpty())
         {
             // There is no overlap between the source data grid and the target
