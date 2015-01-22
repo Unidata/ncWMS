@@ -88,7 +88,6 @@ import uk.ac.rdg.resc.edal.geometry.HorizontalPosition;
 import uk.ac.rdg.resc.edal.time.AllLeapChronology;
 import uk.ac.rdg.resc.edal.time.NoLeapChronology;
 import uk.ac.rdg.resc.edal.time.ThreeSixtyDayChronology;
-import uk.ac.rdg.resc.edal.time.TimeUtils;
 import uk.ac.rdg.resc.edal.util.CollectionUtils;
 import uk.ac.rdg.resc.ncwms.graphics.ImageProducer;
 
