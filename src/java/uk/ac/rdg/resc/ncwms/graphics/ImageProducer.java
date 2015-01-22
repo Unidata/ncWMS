@@ -78,7 +78,7 @@ public final class ImageProducer
     private static final Logger logger = LoggerFactory.getLogger(ImageProducer.class);
 
     //public static enum Style {BOXFILL, VECTOR, CONTOUR, BARB, ARROWS};
-    public static enum Style {BOXFILL, VECTOR, CONTOUR, BARB, STUMPVEC, TRIVEC, LINEVEC, FANCYVEC};
+    public static enum Style {BOXFILL, VECTOR, CONTOUR, BARB, STUMPVEC, TRIVEC, LINEVEC, FANCYVEC, PRETTYVEC};
     
     private Style style;
     // Width and height of the resulting picture
@@ -253,7 +253,7 @@ public final class ImageProducer
 
         if (style == Style.VECTOR || isArrowStyle(style) || style == Style.BARB) {
             Graphics2D g = image.createGraphics();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             g.setColor(new Color(0, 0, 0));
 
             float stepScale = 1.1f;
@@ -519,8 +519,7 @@ public final class ImageProducer
     }
     
     private boolean isArrowStyle(Style style){
-    	
-    	return style == Style.BARB || style == Style.FANCYVEC || style == Style.STUMPVEC || style == Style.TRIVEC || style == Style.LINEVEC;
+        return style == Style.BARB || style == Style.FANCYVEC || style == Style.STUMPVEC || style == Style.TRIVEC || style == Style.LINEVEC || style == Style.PRETTYVEC;
     }
 
     public int getOpacity()
