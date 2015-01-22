@@ -27,6 +27,7 @@
  */
 package uk.ac.rdg.resc.ncwms.controller;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -762,9 +763,13 @@ public abstract class AbstractWmsController extends AbstractController {
                     + "the scale extremes explicitly.");
             }
 
+            boolean transparent = params.getBoolean("transparent", false);
+            Color backgroundColor = params.getColor("bgcolor", Color.black);
+
             // Now create the legend image
-            legend = palette.createLegend(numColourBands, layer.getTitle(),
-                    layer.getUnits(), logarithmic, colorScaleRange);
+            legend = palette.createLegend(numColourBands, layer.getTitle(), layer.getUnits(),
+                                          logarithmic, colorScaleRange,
+                                          transparent, backgroundColor);
         }
         httpServletResponse.setContentType("image/png");
         ImageIO.write(legend, "png", httpServletResponse.getOutputStream());

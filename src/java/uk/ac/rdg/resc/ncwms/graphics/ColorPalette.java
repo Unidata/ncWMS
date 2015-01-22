@@ -218,7 +218,7 @@ public class ColorPalette
         Color[] newPalette = this.getPalette(numColorBands);
         // Create a BufferedImage of the correct size - we don't need the alpha channel
         BufferedImage colorBar = new BufferedImage(width, height,
-            BufferedImage.TYPE_INT_RGB);
+            BufferedImage.TYPE_INT_ARGB);
         Graphics2D gfx = colorBar.createGraphics();
         // Cycle through each row in the image and draw a band of the
         // appropriate colour.
@@ -242,27 +242,40 @@ public class ColorPalette
      * @param logarithmic True if the scale is to be logarithmic: otherwise linear
      * @param colourScaleRange Data values corresponding with the min and max
      * values of the colour scale
+     * @param transparent True if the legend background is to be transparent.
+     * @param backgroundColor Colour for the background of the legend. It is 
+     * also used to select the colour for the text with greater contrast. 
      * @return a BufferedImage object representing the legend.  This has a fixed
      * size (110 pixels wide, 264 pixels high)
      * @throws IllegalArgumentException if the requested number of colour bands
      * is less than one or greater than 254.
      */
     public BufferedImage createLegend(int numColorBands, String title, String units,
-        boolean logarithmic, Range<Float> colorScaleRange)
+        boolean logarithmic, Range<Float> colorScaleRange,
+        boolean transparent, Color backgroundColor)
     {
         float colourScaleMin = colorScaleRange.getMinimum();
         float colourScaleMax = colorScaleRange.getMaximum();
         BufferedImage colourScale = new BufferedImage(LEGEND_WIDTH,
-            LEGEND_HEIGHT, BufferedImage.TYPE_3BYTE_BGR);
+            LEGEND_HEIGHT, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D gfx = colourScale.createGraphics();
         
+        // Fill the background.
+        gfx.setColor(transparent ? new Color(0, 0, 0, 0) : backgroundColor);
+        gfx.fillRect(0, 0, LEGEND_WIDTH, LEGEND_HEIGHT);
+
         // Create the colour bar itself
         BufferedImage colorBar = this.createColorBar(24, MAX_NUM_COLOURS, numColorBands);
         // Add the colour bar to the legend
         gfx.drawImage(colorBar, null, 2, 5);
         
         // Draw the text items
-        gfx.setColor(Color.WHITE);
+        float[] backgroundHSB = Color.RGBtoHSB(backgroundColor.getRed(),
+                                               backgroundColor.getGreen(),
+                                               backgroundColor.getBlue(), null);
+        Color textColor =  backgroundHSB[2] < 0.5 ? Color.WHITE : Color.BLACK;
+        gfx.setColor(textColor);
+
         // Add the scale values
         double min = logarithmic ? Math.log(colourScaleMin) : colourScaleMin;
         double max = logarithmic ? Math.log(colourScaleMax) : colourScaleMax;
@@ -323,13 +336,11 @@ public class ColorPalette
         // Gets an interpolated/subsampled version of this palette with the
         // given number of colour bands
         Color[] newPalette = this.getPalette(numColorBands);
-        // Compute the alpha value based on the percentage transparency
-        int alpha;
-        // Here we are playing safe and avoiding rounding errors that might
-        // cause the alpha to be set to zero instead of 255
-        if (opacity >= 100) alpha = 255;
-        else if (opacity <= 0)  alpha = 0;
-        else alpha = (int)(2.55 * opacity);
+        // Compute the alpha factor value based on the percentage transparency
+        float alpha_factor;
+        if (opacity >= 100) alpha_factor = 1.0f;
+        else if (opacity <= 0)  alpha_factor = 0.0f;
+        else alpha_factor = 0.01f * opacity;
 
         // Now simply copy the target palette to arrays of r,g,b and a
         byte[] r = new byte[numColorBands + 3];
@@ -341,20 +352,20 @@ public class ColorPalette
             r[i] = (byte)newPalette[i].getRed();
             g[i] = (byte)newPalette[i].getGreen();
             b[i] = (byte)newPalette[i].getBlue();
-            a[i] = (byte)alpha;
+            a[i] = (byte) (newPalette[i].getAlpha() * alpha_factor);
         }
 
         // The next index represents the background colour (which may be transparent)
         r[numColorBands] = (byte)bgColor.getRed();
         g[numColorBands] = (byte)bgColor.getGreen();
         b[numColorBands] = (byte)bgColor.getBlue();
-        a[numColorBands] = transparent ? 0 : (byte)alpha;
+        a[numColorBands] = transparent ? 0 : (byte)(bgColor.getAlpha() * alpha_factor);
 
         if(lowColor != null) {  
             r[numColorBands + 1] = (byte) lowColor.getRed();
             g[numColorBands + 1] = (byte) lowColor.getGreen();
             b[numColorBands + 1] = (byte) lowColor.getBlue();
-            a[numColorBands + 1] = (byte) lowColor.getAlpha();
+            a[numColorBands + 1] = (byte) (lowColor.getAlpha() * alpha_factor);
         } else {
             r[numColorBands + 1] = r[0];
             g[numColorBands + 1] = g[0];
@@ -366,7 +377,7 @@ public class ColorPalette
             r[numColorBands + 2] = (byte) highColor.getRed();
             g[numColorBands + 2] = (byte) highColor.getGreen();
             b[numColorBands + 2] = (byte) highColor.getBlue();
-            a[numColorBands + 2] = (byte) highColor.getAlpha();
+            a[numColorBands + 2] = (byte) (highColor.getAlpha() * alpha_factor);
         } else {
             r[numColorBands + 2] = r[numColorBands - 1];
             g[numColorBands + 2] = g[numColorBands - 1];
@@ -469,16 +480,17 @@ public class ColorPalette
         return new Color(
             Math.round(fracFromC1 * c1.getRed() + fracFromC2 * c2.getRed()),
             Math.round(fracFromC1 * c1.getGreen() + fracFromC2 * c2.getGreen()),
-            Math.round(fracFromC1 * c1.getBlue() + fracFromC2 * c2.getBlue())
+            Math.round(fracFromC1 * c1.getBlue() + fracFromC2 * c2.getBlue()),
+            Math.round(fracFromC1 * c1.getAlpha() + fracFromC2 * c2.getAlpha())
         );
     }
     
     /**
      * Reads a colour palette (as an array of Color object) from the given File.
      * Each line in the file contains a single colour, expressed as space-separated
-     * RGB values.  These values can be integers in the range 0->255 or floats
-     * in the range 0->1.  If the palette cannot be read, no exception is thrown
-     * but an event is logged to the error log.
+     * RGB or ARGB values.  These values can be integers in the range 0->255 
+     * or floats in the range 0->1.  If the palette cannot be read, no exception
+     * is thrown but an event is logged to the error log.
      * @throws Exception if the palette file could not be read or contains a
      * format error
      */
@@ -487,41 +499,56 @@ public class ColorPalette
         BufferedReader reader = new BufferedReader(paletteReader);
         List<Color> colours = new ArrayList<Color>();
         String line;
+        int lineno = 0;
         try
         {
             while((line = reader.readLine()) != null)
             {
-                if (line.startsWith("#") || line.trim().equals(""))
-                {
-                    continue; // Skip comment lines and blank lines
-                }
+                lineno++;
+                Color colour;
+                Float a, r, g, b;
+                float[] components = {-1.0f, -1.0f, -1.0f, -1.0f};
+                int ncomponents = 0;
+                boolean comment = false;
                 StringTokenizer tok = new StringTokenizer(line.trim());
-                try
+                while (ncomponents < 4 && tok.hasMoreTokens() && ! comment)
                 {
-                    if (tok.countTokens() < 3) throw new Exception();
-                    // We only read the first three tokens
-                    Float r = Float.valueOf(tok.nextToken());
-                    Float g = Float.valueOf(tok.nextToken());
-                    Float b = Float.valueOf(tok.nextToken());
-                    // Check for negative numbers
-                    if (r < 0.0f || g < 0.0f || b < 0.0f) throw new Exception();
-                    if (r > 1.0f || g > 1.0f || b > 1.0f)
-                    {
-                        // We assume this colour is expressed in the range 0->255
-                        if (r > 255.0f || g > 255.0f || b > 255.0f) throw new Exception();
-                        colours.add(new Color(r.intValue(), g.intValue(), b.intValue()));
-                    }
-                    else
-                    {
-                        // the colours are expressed in the range 0->1
-                        colours.add(new Color(r, g, b));
+                    String token = tok.nextToken();
+                    if (token.startsWith("#")) {
+                       comment = true;
+                    } else {
+                       components[ncomponents++] = Float.valueOf(token);
                     }
                 }
-                catch(Exception e)
-                {
-                    throw new Exception("File format error: each line must contain three numbers between 0 and 255 or 0.0 and 1.0 (R, G, B)");
+                if (ncomponents == 0)
+                   continue;
+                if (ncomponents < 3)
+                   throw new Exception("missing components");
+                b = components[ncomponents-1];
+                g = components[ncomponents-2];
+                r = components[ncomponents-3];
+                a = ncomponents == 4 ? components[0] : 1.0f;
+                if (r <   0.0f || g <   0.0f || b <   0.0f || a <   0.0f ||
+                    r > 255.0f || g > 255.0f || b > 255.0f || a > 255.0f) {
+                    throw new Exception("invalid component value");
                 }
+                if (r > 1.0f || g > 1.0f || b > 1.0f || a > 1.0f)
+                {
+                    // We assume this colour is expressed in the range 0->255
+                    colour = new Color(r.intValue(), g.intValue(), b.intValue(),
+                                       ncomponents == 4 ? a.intValue() : 255);
+                } else {
+                    // the colours are expressed in the range 0->1
+                    colour = new Color(r, g, b, a);
+                }
+                colours.add(colour);
             }
+        }
+        catch(Exception e)
+        {
+            throw new Exception("File format error at line " + lineno +": "
+                + " each line must contain 3 or 4 numbers (R G B) or (A R G B)"
+                + " between 0 and 255 or 0.0 and 1.0 (" + e.getMessage() + ").");
         }
         finally
         {

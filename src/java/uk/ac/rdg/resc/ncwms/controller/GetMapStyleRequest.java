@@ -76,51 +76,39 @@ public class GetMapStyleRequest
 
         this.transparent = params.getBoolean("transparent", false);
         
-        try
-        {
-            String bgc = params.getString("bgcolor", "0xFFFFFF");
-            if (bgc.length() != 8 || !bgc.startsWith("0x")) throw new Exception();
-            // Parse the hexadecimal string, ignoring the "0x" prefix
-            this.backgroundColour = new Color(Integer.parseInt(bgc.substring(2), 16));
-        }
-        catch(Exception e)
-        {
+        try {
+            this.backgroundColour = params.getColor("bgcolor", Color.black);
+        } catch(Exception e) {
             throw new WmsException("Invalid format for BGCOLOR");
         }
         
         String lowColorStr = params.getString("belowmincolor");
         if(lowColorStr == null) {
-            lowColor = Color.black;
+            this.lowColor = Color.black;
         } else if(lowColorStr.equalsIgnoreCase("extend")) {
-            lowColor = null;
+            this.lowColor = null;
         } else if(lowColorStr.equalsIgnoreCase("transparent")) {
-            lowColor = new Color(0, 0, 0, 0);
+            this.lowColor = new Color(0, 0, 0, 0);
         } else {
             try {
-                if (lowColorStr.length() != 8 || !lowColorStr.startsWith("0x"))
-                    throw new Exception();
-                // Parse the hexadecimal string, ignoring the "0x" prefix
-                lowColor= new Color(Integer.parseInt(lowColorStr.substring(2), 16));
+                this.lowColor = params.getColor("belowmincolor", Color.black);
             } catch (Exception e) {
-                throw new WmsException("Invalid format for BELOWMINCOLOR");
+                throw new WmsException("Invalid format for BELOWMINCOLOR: " + e.getMessage());
             }
         }
         
         String highColorStr = params.getString("abovemaxcolor");
         if(highColorStr == null) {
-            highColor = Color.black;
+            this.highColor = Color.black;
         } else if(highColorStr.equalsIgnoreCase("extend")) {
-            highColor = null;
+            this.highColor = null;
         } else if(highColorStr.equalsIgnoreCase("transparent")) {
-            highColor = new Color(0, 0, 0, 0);
+            this.highColor = new Color(0, 0, 0, 0);
         } else {
             try {
-                if (highColorStr.length() != 8 || !highColorStr.startsWith("0x"))
-                    throw new Exception();
-                // Parse the hexadecimal string, ignoring the "0x" prefix
-                highColor = new Color(Integer.parseInt(highColorStr.substring(2), 16));
+                this.highColor = params.getColor("abovemaxcolor", Color.black);
             } catch (Exception e) {
-                throw new WmsException("Invalid format for ABOVEMAXCOLOR");
+                throw new WmsException("Invalid format for ABOVEMAXCOLOR: " + e.getMessage());
             }
         }
         

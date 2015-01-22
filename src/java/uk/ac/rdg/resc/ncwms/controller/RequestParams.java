@@ -28,6 +28,7 @@
 
 package uk.ac.rdg.resc.ncwms.controller;
 
+import java.awt.Color;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
@@ -230,4 +231,21 @@ public class RequestParams
         }
     }
     
+    public Color getColor(String paramName, Color defaultValue) throws WmsException
+    {
+       String value = this.getString(paramName);
+       if (value == null)
+       {
+           return defaultValue;
+       }
+       try
+       {
+           return Color.decode(value);
+       }
+       catch(NumberFormatException nfe)
+       {
+           throw new WmsException("Parameter " + paramName.toUpperCase() +
+               " must be a valid color code (0xXXXXXX or #000000).");
+       }
+    }
 }
