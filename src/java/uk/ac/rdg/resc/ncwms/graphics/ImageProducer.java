@@ -356,16 +356,6 @@ public final class ImageProducer
         Graphics2D g = image.createGraphics();
         renderer.draw(g);
         
-        int transpPixel = getColorModel().getRGB(0);
-        for(int i=0; i<image.getWidth();i++) {
-            for(int j=0; j<image.getHeight();j++) {
-                int rgb = image.getRGB(i, j);
-                if(rgb == transpPixel) {
-                    image.setRGB(i, j, 0);
-                }
-            }
-        }
-
         return image;
     }
 
