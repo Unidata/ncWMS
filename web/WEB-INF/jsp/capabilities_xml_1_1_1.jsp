@@ -148,9 +148,9 @@ response.setDateHeader ("Expires", 0); //prevents caching at the proxy server
                           </c:choose>
                       </Extent>
                     </c:if>
-                    <c:set var="styles" value="boxfill"/>
+                    <c:set var="styles" value="boxfill,contour"/>
                     <c:if test="${utils:isVectorLayer(layer)}">
-                        <c:set var="styles" value="barb,prettyvec,fancyvec,trivec,stumpvec,linevec,vector,boxfill"/>
+                        <c:set var="styles" value="barb,prettyvec,fancyvec,trivec,stumpvec,linevec,vector,arrows,boxfill,contour"/>
                     </c:if>
                     <c:forEach var="style" items="${styles}">
                     <c:forEach var="paletteName" items="${paletteNames}">
