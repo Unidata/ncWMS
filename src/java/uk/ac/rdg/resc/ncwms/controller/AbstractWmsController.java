@@ -492,6 +492,7 @@ public abstract class AbstractWmsController extends AbstractController {
             .numColourBands(styleRequest.getNumColourBands())
             .numContours(styleRequest.getNumContours())
             .vectorScale(styleRequest.getVectorScaleFactor())
+            .vectorStep(styleRequest.getVectorStepFactor())
             .build();
         // Need to make sure that the images will be compatible with the
         // requested image format

@@ -59,6 +59,7 @@ public class GetMapStyleRequest
     private Color highColor;
     private Color lowColor;
     private float vectorScaleFactor;
+    private float vectorStepFactor;
     
     /**
      * Creates a new instance of GetMapStyleRequest from the given parameters
@@ -120,6 +121,7 @@ public class GetMapStyleRequest
         this.numContours = getNumContours(params);
         this.logarithmic = isLogScale(params);
         this.vectorScaleFactor = params.getFloat("vectorScaleFactor", 1.0f);
+        this.vectorStepFactor = params.getFloat("vectorStepFactor", 1.0f);
     }
     
     /**
@@ -277,5 +279,9 @@ public class GetMapStyleRequest
     
     public float getVectorScaleFactor() {
         return vectorScaleFactor;
+    }
+
+    public float getVectorStepFactor() {
+        return vectorStepFactor;
     }
 }

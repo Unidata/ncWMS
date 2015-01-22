@@ -109,6 +109,7 @@ public final class ImageProducer
     private String units;
     private int equator_y_index;
     public float vectorScale;
+    public float vectorStep;
     
     // set of rendered images, ready to be turned into a picture
     private List<BufferedImage> renderedFrames = new ArrayList<BufferedImage>();
@@ -255,17 +256,17 @@ public final class ImageProducer
         if (style == Style.VECTOR || isArrowStyle(style) || style == Style.BARB) {
             Graphics2D g = image.createGraphics();
             g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g.setColor(new Color(0, 0, 0));
+            g.setColor(new Color(0, 0, 0, 255));
 
-            float stepScale = 1.1f;
-            float imageLength = this.arrowLength;
+            // the vectorStep defines the distance between each vector symbol
+            // it is defined as a function of the size of the symbol glyph, multiplied by 
+            // a scaling factor supplied in the request (default = 1), plus a small margin
+            // of 5 we found to be suitable for our data
 
             if (this.style == Style.BARB) {
-                imageLength = this.barbLength * this.vectorScale;
-                stepScale = 1.2f * this.vectorScale;
+                vectorStep = 5 + this.barbLength * vectorStep;
             } else {
-                imageLength = this.arrowLength * this.vectorScale;
-                stepScale = 1.1f * this.vectorScale;
+                vectorStep = 5 + this.arrowLength * vectorStep;
             }
 
             int index;
@@ -275,8 +276,12 @@ public final class ImageProducer
             Float eastVal;
             Float northVal;
 
-            for (int i = 0; i < this.picWidth; i += Math.ceil(imageLength + stepScale)) {
-                for (int j = 0; j < this.picHeight; j += Math.ceil(imageLength + stepScale)) {
+            float scaleMin = this.scaleRange.getMinimum().floatValue();
+            float scaleMax = this.scaleRange.getMaximum().floatValue();
+
+            // use the vectorStep to walk across the image in the x and y directions
+            for (int i = 0; i < this.picWidth; i += Math.ceil(vectorStep)) {
+                for (int j = 0; j < this.picHeight; j += Math.ceil(vectorStep)) {
                     dataIndex = this.getDataIndex(i, j);
                     eastVal = comps.x.get(dataIndex);
                     northVal = comps.y.get(dataIndex);
@@ -295,10 +300,17 @@ public final class ImageProducer
                             BarbFactory.renderWindBarbForSpeed(mag, radangle, i, j, this.units,
                                     this.vectorScale, j >= this.equator_y_index, g);
                         } else {
-                            // Arrows. We need to pick the style arrow now
-                        	arrowStyle = style.toString();
-                            VectorFactory.renderVector(arrowStyle, mag, radangle, i, j,
-                                    this.vectorScale, g);
+                            // Arrows.  We need to pick the style arrow now
+                            //VectorFactory.renderVector(this.style.name(), mag, radangle, i, j, this.vectorScale, g);
+                            // use the vector scale factor when calling each individual vector symbol                       
+                            // calculate the vectorScaling factor as a function of where this cell value is
+                            // in relation to the min and max. this is done by normalising the value to be between
+                            // 0 and 1, and multiplying that value by the vectorScale (default=1) ,
+                            // and then by multiplying by 4 which was a number that 'seemed right' for our data
+                            // following some experimentation                            
+                            arrowStyle = style.toString();
+                            float theScale = 4 * this.vectorScale * (mag.floatValue() - scaleMin) / (scaleMax - scaleMin);
+                            VectorFactory.renderVector(arrowStyle, mag, radangle, i, j, theScale, g);
                         }
                     }
                 }
@@ -528,6 +540,7 @@ public final class ImageProducer
         private boolean transparent = false;
         private int opacity = 100;
         private float vectorScale = 1;
+        private float vectorStep = 1;
         private int numColourBands = ColorPalette.MAX_NUM_COLOURS;
         private int numContours = 10;
         private Boolean logarithmic = null;
@@ -593,7 +606,14 @@ public final class ImageProducer
             this.vectorScale = scale;
             return this;
         }
-        
+       
+        /** Sets the vectorStep (defaults to 1.0) */
+        public Builder vectorStep(float step) {
+            if (step <= 0) throw new IllegalArgumentException();
+            this.vectorStep = step;
+            return this;
+        }
+ 
         /** Sets the layers units */
         public Builder units(String units) {
             this.units = units;
@@ -683,6 +703,7 @@ public final class ImageProducer
             ip.picHeight = this.picHeight;
             ip.opacity = this.opacity;
             ip.vectorScale = this.vectorScale;
+            ip.vectorStep = this.vectorStep;
             ip.units = this.units == null ? "" : this.units;
             ip.equator_y_index = this.equator_y_index;
             ip.transparent = this.transparent;
