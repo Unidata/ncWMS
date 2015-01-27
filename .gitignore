@@ -1,10 +1,38 @@
-/target
+# Ignore all target directories
+target/
+
+# Ignore unwanted IntelliJ IDEA project files
+/intelliJ/
+/intellij/
+*.ipr
+*.iml
+*.iws
+.idea/
+atlassian-ide-plugin.xml
 
 # Ignore eclipse project files
 .classpath
 .project
 .settings/
 bin/
-build/
-dist/
 *~
+
+# Ignore gradle stuff
+.gradle/
+build/
+
+# OS generated files 
+.DS_Store*
+ehthumbs.db
+# On Windows (and Mac?), it appears that the "Icon" line is followed by two blank lines.
+# DO NOT DELETE THEM. They are actually carraige returns ('\r'), and are part of the pattern.
+# See https://github.com/github/gitignore/pull/183
+Icon
+Thumbs.db
+*.swp
+*.*~
+._*
+
+# Coverity files 
+cov-int
+ncWms-tds.tgz
