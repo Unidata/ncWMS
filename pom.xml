@@ -28,6 +28,13 @@
     </developer>
   </developers>
 
+  <scm>
+    <url>https://github.com/Unidata/ncWMS</url>
+    <connection>scm:git:https://github.com/Unidata/ncWMS/</connection>
+    <developerConnection>scm:git:git@github.com:Unidata/ncWMS.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
   <distributionManagement>
     <repository>
       <id>unidata-releases</id>
