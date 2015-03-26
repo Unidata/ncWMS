@@ -1,16 +1,17 @@
 Making a ncWMS release in preparation for a THREDDS release
 
-1. ncWMS and THREDDS have a circular dependency. To resolve it, we're going to have to build temporary THREDDS artifacts.
-    a) Manually change the THREDDS version, e.g. from "4.6.0-SNAPSHOT" to "4.6.0".
-       You'll probably want to run a global Find and Replace.
-    b) Do not update the ncwms or threddsIso dependencies, as we haven't yet built the new versions.
-       We're kind of cheating here.
-    c) "mvn install". This will install new THREDDS artifacts in your local Maven repository.
-       We'll use these to deploy new versions of ncwms and threddsIso.
-    d) Revert all of the changes you've made. For the actual THREDDS release,
-       we'll be running the maven-release-plugin on Jenkins.
-2. Update versions, removing any SNAPSHOT dependencies. For example, "1.2.tds.4.6.0-SNAPSHOT" -> "1.2.tds.4.6.0".
-   Commit the change.
+1. ncWMS and THREDDS have a circular dependency. To resolve it,
+   we're going to have to build temporary THREDDS artifacts.
+     a) In THREDDS, manually change the version, e.g. from "4.6.0-SNAPSHOT" to "4.6.0".
+        You'll probably want to run a global Find and Replace.
+     b) Do not update the ncwms or threddsIso dependencies, as we haven't yet built the new versions.
+        We're kind of cheating here.
+     c) "mvn install". This will install new THREDDS artifacts in your local Maven repository.
+        We'll use these to deploy new versions of ncwms and threddsIso.
+     d) Revert all of the changes you've made. For the actual THREDDS release,
+        we'll be running the maven-release-plugin on Jenkins.
+2. In ncWMS, update the versions of any SNAPSHOT dependencies.
+   For example, "1.2.tds.4.6.0-SNAPSHOT" -> "1.2.tds.4.6.0". Commit the change.
 3. Create a tag for the release, e.g. "v1.2.tds.4.6.0". In IntelliJ, do VCS->Git->Tag...
 4. "mvn deploy". You'll need the proper credentials in ~/.m2/settings.xml in order to deploy to Nexus.
 5. Update versions again for development, e.g. "1.2.tds.4.6.0" -> "1.2.tds.4.6.1-SNAPSHOT". Commit the change.
