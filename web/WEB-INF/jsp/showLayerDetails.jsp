@@ -40,7 +40,7 @@ response.setDateHeader ("Expires", 0); //prevents caching at the proxy server
 
     <c:set var="styles" value="boxfill,contour"/>
     <c:if test="${utils:isVectorLayer(layer)}">
-        <c:set var="styles" value="barb,prettyvec,fancyvec,trivec,stumpvec,linevec,vector,arrows,boxfill,contour"/>
+        <c:set var="styles" value="vector,arrows,boxfill,contour"/>
     </c:if>
     <json:array name="supportedStyles" items="${styles}"/>
 
