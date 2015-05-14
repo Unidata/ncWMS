@@ -6,7 +6,7 @@
   <artifactId>ncwms</artifactId>
   <packaging>jar</packaging>
   <name>ncWMS</name>
-  <version>1.2.tds.4.6.1-SNAPSHOT</version>
+  <version>1.2.tds.4.6.1</version>
   <description>
     ncWMS is an OGC Web Map Service (WMS) for geospatial data that are
     stored in CF-compliant NetCDF files.
@@ -356,7 +356,7 @@
   </build>
 
   <properties>
-    <cdm.version>4.6.1-SNAPSHOT</cdm.version>
+    <cdm.version>4.6.1</cdm.version>
 
     <org.geotoolkit.version>3.21</org.geotoolkit.version>
 
