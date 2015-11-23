@@ -345,7 +345,7 @@ public abstract class AbstractWmsController extends AbstractController {
             // stuff about polar stereographic projections
             "EPSG:3408", // NSIDC EASE-Grid North
             "EPSG:3409", // NSIDC EASE-Grid South
-            "EPSG:3857", // Google Maps
+            "EPSG:3857", "EPSG:900913", // Google Maps
             "EPSG:32661", // North Polar stereographic
             "EPSG:32761" // South Polar stereographic
         };
