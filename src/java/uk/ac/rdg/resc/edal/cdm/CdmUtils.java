@@ -72,6 +72,7 @@ import ucar.nc2.dt.GridDataset.Gridset;
 import ucar.nc2.dt.GridDatatype;
 import ucar.nc2.ft.FeatureDatasetFactoryManager;
 import ucar.nc2.time.CalendarDate;
+import ucar.nc2.time.ExposeDateTime;
 import ucar.unidata.geoloc.LatLonPoint;
 import ucar.unidata.geoloc.LatLonRect;
 import uk.ac.rdg.resc.edal.coverage.CoverageMetadata;
@@ -365,7 +366,7 @@ public final class CdmUtils
      * system, in an appropriate {@link Chronology}. (Chronologies represent the
      * calendar system.)
      * 
-     * @param coordSys
+     * @param timeAxis
      *            The coordinate system containing the time information
      * @return List of TimestepInfo objects, or an empty list if the coordinate
      *         system has no time axis
@@ -378,7 +379,7 @@ public final class CdmUtils
         // Use the Java NetCDF library's built-in date parsing code
         //for (Date date : timeAxis.getTimeDates())
         for (CalendarDate date : timeAxis.getCalendarDates()  )
-            timesteps.add(new DateTime(date.getMillis(), DateTimeZone.UTC));
+            timesteps.add(ExposeDateTime.getDateTime(date));
         return timesteps;
     }
 
