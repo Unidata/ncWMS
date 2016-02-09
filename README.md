@@ -20,12 +20,15 @@ ncWMS community) to ensure that changes are shared as appropriate.
 ### Main ncWMS repository
 
 The master branch is the development branch. The master branch is using artifacts from
-the THREDDS project version 4.6.2-SNAPSHOT (current THREDDS development version)
+the THREDDS project version 4.6.5-SNAPSHOT (current THREDDS development version)
 
 Major milestones from ncWMS 1.x development are tracked on the "**track-ncWMS-svn**"
 branch (including 1.0, 1.1, 1.1.1, 1.2, and various other "versions" used by TDS).
 
 ### Tags
+
+**1.2.tds.4.6.4**
+Used in TDS version 4.6.4
 
 **1.2.tds.4.6.1**:
 Used in TDS version 4.6.1
