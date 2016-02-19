@@ -681,6 +681,14 @@ public final class CdmUtils
             throws IOException
     {
         GridDatatype grid = getGridDatatype(nc, varId);
+        return readTimeseries(nc, grid, horizGrid, tIndices, zIndex, xy);
+    }
+
+    public static List<Float> readTimeseries(NetcdfDataset nc, GridDatatype grid,
+            HorizontalGrid horizGrid, List<Integer> tIndices,
+            int zIndex, HorizontalPosition xy)
+            throws IOException
+    {
         GridCoordinates gridCoords = horizGrid.findNearestGridPoint(xy);
         if (gridCoords == null)
         {
