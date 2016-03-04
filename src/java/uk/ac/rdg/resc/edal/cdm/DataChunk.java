@@ -118,11 +118,10 @@ class DataChunk
      * @return the data value, or {@link Float#NaN} if this is a missing value
      */
     public float readFloatValue(Index index) {
-        double val = arr.getFloat(index);
-        if (this.needsEnhance) {
-            val = this.var.convertScaleOffsetMissing(val);
-        }
-        if (this.var.isMissing(val)) return Float.NaN;
-        else return (float)val;
+        double val = arr.getDouble(index);
+        if (this.needsEnhance)
+            return (float) this.var.convertScaleOffsetMissing(val);
+        else
+            return (float) val;
     }
 }
