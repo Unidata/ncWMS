@@ -2,7 +2,7 @@ Making a ncWMS release in preparation for a THREDDS release
 
 1. ncWMS and THREDDS have a circular dependency. To resolve it,
    we're going to have to build temporary THREDDS artifacts.
-     a) In THREDDS, manually change the version, e.g. from "4.6.1-SNAPSHOT" to "4.6.1".
+     a) In THREDDS, manually change the version, e.g. from "4.6.6-SNAPSHOT" to "4.6.6".
      b) Do not update the ncwms or threddsIso dependencies, as we haven't yet built the new versions.
         We're kind of cheating here.
      c) "gradlew publishToMavenLocal". This will install new THREDDS artifacts in your local Maven repository.
@@ -11,9 +11,9 @@ Making a ncWMS release in preparation for a THREDDS release
         we'll (eventually) be running the gradle-release-plugin on Jenkins.
 2. In ncWMS, pull all changes from origin.
 3. Update the versions of any SNAPSHOT dependencies.
-   For example, "1.2.tds.4.6.1-SNAPSHOT" -> "1.2.tds.4.6.1". Commit the change.
-4. Create a tag for the release, e.g. "v1.2.tds.4.6.1". In IntelliJ, do VCS->Git->Tag...
+   For example, "1.2.tds.4.6.6-SNAPSHOT" -> "1.2.tds.4.6.6". Commit the change.
+4. Create a tag for the release, e.g. "v1.2.tds.4.6.6". In IntelliJ, do VCS->Git->Tag...
 5. "mvn deploy". You'll need the proper credentials in ~/.m2/settings.xml in order to deploy to Nexus.
-6. Update versions again for development, e.g. "1.2.tds.4.6.1" -> "1.2.tds.4.6.2-SNAPSHOT". Commit the change.
+6. Update versions again for development, e.g. "1.2.tds.4.6.6" -> "1.2.tds.4.6.7-SNAPSHOT". Commit the change.
 7. Push the changes upstream. Be sure to include the tag you created.
    In IntelliJ, check the "Push Tags" box in the "Push Commits" dialog.
