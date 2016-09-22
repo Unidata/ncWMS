@@ -514,7 +514,7 @@ public abstract class AbstractWmsController extends AbstractController {
         for (DateTime timeValue : timeValues) {
             // Only add a label if this is part of an animation
             String tValueStr = "";
-            if (timeValues.size() > 1 && timeValue != null && !googleEarth) {
+            if (timeValues.size() > 1 && timeValue != null) {
                 tValueStr = WmsUtils.dateTimeToISO8601(timeValue);
             }
             tValueStrings.add(tValueStr);

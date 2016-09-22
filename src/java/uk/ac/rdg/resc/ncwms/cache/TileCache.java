@@ -112,7 +112,7 @@ public class TileCache
         tileCacheConfig.addDiskStore(diskStore);
         tileCacheConfig.addDefaultCache(new CacheConfiguration());
         tileCacheConfig.setName("ncWMS-tile-cache");
-        this.cacheManager = new CacheManager(tileCacheConfig);
+        this.cacheManager = CacheManager.create(tileCacheConfig);
         
         Cache tileCache = new Cache(
             CACHE_NAME,                                      // Name for the cache

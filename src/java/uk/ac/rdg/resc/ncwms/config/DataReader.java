@@ -358,7 +358,8 @@ public abstract class DataReader
         List<File> files = new ArrayList<File>();
         for (File path : searchPaths)
         {
-            if (path.isFile()) files.add(path);
+            if (path.isFile())
+                files.add(path);
         }
         return files;
     }

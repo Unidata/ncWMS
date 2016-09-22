@@ -332,10 +332,10 @@ public class ColorPalette
         else alpha = (int)(2.55 * opacity);
 
         // Now simply copy the target palette to arrays of r,g,b and a
-        byte[] r = new byte[numColorBands + 3];
-        byte[] g = new byte[numColorBands + 3];
-        byte[] b = new byte[numColorBands + 3];
-        byte[] a = new byte[numColorBands + 3];
+        byte[] r = new byte[numColorBands + 4];
+        byte[] g = new byte[numColorBands + 4];
+        byte[] b = new byte[numColorBands + 4];
+        byte[] a = new byte[numColorBands + 4];
         for (int i = 0; i < numColorBands; i++)
         {
             r[i] = (byte)newPalette[i].getRed();
@@ -373,6 +373,14 @@ public class ColorPalette
             b[numColorBands + 2] = b[numColorBands - 1];
             a[numColorBands + 2] = a[numColorBands - 1];
         }
+        
+        /*
+         * Set the final colour to black (for drawing arrows etc)
+         */
+        r[numColorBands + 3] = 0;
+        g[numColorBands + 3] = 0;
+        b[numColorBands + 3] = 0;
+        a[numColorBands + 3] = (byte) 255;
 
         // Now we can create the color model
         return new IndexColorModel(8, r.length, r, g, b, a);
