@@ -97,6 +97,7 @@ public class Charting
     {
         TimeSeries ts = new TimeSeries("Data");
         for (Entry<DateTime, Float> entry : tsData.entrySet()) {
+//            ts.add(new Millisecond(entry.getKey().toDate()), entry.getValue());
             ts.add(new FixedMillisecond(entry.getKey().toDate()), entry.getValue());
         }
         TimeSeriesCollection xydataset = new TimeSeriesCollection();

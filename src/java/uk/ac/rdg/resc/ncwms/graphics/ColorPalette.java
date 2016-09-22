@@ -60,14 +60,15 @@ public class ColorPalette
     private static final Logger logger = LoggerFactory.getLogger(ColorPalette.class);
     
     /**
-     * The maximum number of colours a palette can support (250).
+     * The maximum number of colours a palette can support (253).
      * (One would be hard pushed to distinguish more colours than this in a
      * typical scenario anyway.)
      */
-    public static final int MAX_NUM_COLOURS = 250;
+    public static final int MAX_NUM_COLOURS = 253;
 
     private static final Map<String, ColorPalette> palettes =
         new HashMap<String, ColorPalette>();
+   * @param fillValue must be Byte, Short, Integer, Long, Float, Double, or String, matching dataType
     
     /**
      * The name of the default palette that will be used if the user doesn't 
