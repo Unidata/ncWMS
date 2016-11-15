@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,6 +99,7 @@ import uk.ac.rdg.resc.ncwms.graphics.ColorPalette;
 import uk.ac.rdg.resc.ncwms.graphics.ImageFormat;
 import uk.ac.rdg.resc.ncwms.graphics.ImageProducer;
 import uk.ac.rdg.resc.ncwms.graphics.KmzFormat;
+import uk.ac.rdg.resc.ncwms.servlet.ServletOutputStreamWrapper;
 import uk.ac.rdg.resc.ncwms.usagelog.UsageLogEntry;
 import uk.ac.rdg.resc.ncwms.usagelog.UsageLogger;
 import uk.ac.rdg.resc.ncwms.util.WmsUtils;
@@ -592,8 +594,9 @@ public abstract class AbstractWmsController extends AbstractController {
                     layer.getDataset().getId() + "_" + layer.getId() + ".kmz");
         }
         // Render the images and write to the output stream
+        OutputStream out = new ServletOutputStreamWrapper(httpServletResponse.getOutputStream());
         imageFormat.writeImage(imageProducer.getRenderedFrames(),
-                httpServletResponse.getOutputStream(), layer, tValueStrings,
+                out, layer, tValueStrings,
                 dr.getElevationString(), grid.getExtent(), legend);
 
         return null;
