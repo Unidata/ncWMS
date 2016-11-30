@@ -68,7 +68,6 @@ public class ColorPalette
 
     private static final Map<String, ColorPalette> palettes =
         new HashMap<String, ColorPalette>();
-   * @param fillValue must be Byte, Short, Integer, Long, Float, Double, or String, matching dataType
     
     /**
      * The name of the default palette that will be used if the user doesn't 

@@ -27,6 +27,7 @@
  */
 package uk.ac.rdg.resc.ncwms.controller;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +50,10 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.geotoolkit.geometry.GeneralDirectPosition;
+import org.geotoolkit.geometry.GeneralEnvelope;
+import org.geotoolkit.referencing.CRS;
+
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -58,6 +63,7 @@ import org.jfree.ui.RectangleInsets;
 import org.joda.time.DateTime;
 import org.joda.time.chrono.ISOChronology;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.geometry.Envelope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
@@ -344,7 +350,7 @@ public abstract class AbstractWmsController extends AbstractController {
             // stuff about polar stereographic projections
             "EPSG:3408", // NSIDC EASE-Grid North
             "EPSG:3409", // NSIDC EASE-Grid South
-            "EPSG:3857", // Google Maps
+            "EPSG:3857", "EPSG:900913", // Google Maps
             "EPSG:32661", // North Polar stereographic
             "EPSG:32761" // South Polar stereographic
         };
@@ -433,6 +439,32 @@ public abstract class AbstractWmsController extends AbstractController {
 
         // Get the grid onto which the data will be projected
         RegularGrid grid = WmsUtils.getImageGrid(dr);
+        
+        CoordinateReferenceSystem sourcecs = WmsUtils.getCrs(dr.getCrsCode());
+        CoordinateReferenceSystem wgs84cs = WmsUtils.getCrs("CRS:84");
+        GeneralEnvelope bbox = new GeneralEnvelope((Envelope)grid.getExtent());
+        bbox = (GeneralEnvelope) CRS.transform(bbox, wgs84cs);
+        
+        double[] urc = bbox.getUpperCorner().getCoordinate();
+        double[] llc = bbox.getLowerCorner().getCoordinate();
+        // Assume grid does not cross equator.
+        int equator_y_index = dr.getHeight();
+        
+        if (llc[1] < 0) {
+          // Dataset is 100% in the southern hemisphere or crosses the equator
+          GeneralDirectPosition gdp = new GeneralDirectPosition(wgs84cs);
+          gdp.setLocation(llc[0],0);
+          GeneralEnvelope yaxisbox = (GeneralEnvelope) CRS.transform(new GeneralEnvelope(gdp,gdp),sourcecs);
+          HorizontalPosition hp = new HorizontalPositionImpl(yaxisbox.getUpperCorner().getCoordinate()[0], yaxisbox.getUpperCorner().getCoordinate()[1], sourcecs);
+          GridCoordinates gc = grid.findNearestGridPoint(hp);
+          if (gc != null) {
+            // Crosses the Equator
+            equator_y_index = dr.getHeight() - gc.getCoordinateValue(1);
+          } else {
+            // Does not cross the equator
+            equator_y_index = 0;
+          }
+        }
 
         // Create an object that will turn data into BufferedImages
         Range<Float> scaleRange = styleRequest.getColorScaleRange();
@@ -454,10 +486,15 @@ public abstract class AbstractWmsController extends AbstractController {
             else if (styleType.equalsIgnoreCase("vector")) style = ImageProducer.Style.VECTOR;
             else if (styleType.equalsIgnoreCase("arrows")) style = ImageProducer.Style.ARROWS;
             else if (styleType.equalsIgnoreCase("barb")) style = ImageProducer.Style.BARB;
-            else if (styleType.equalsIgnoreCase("contour")) {
-                style = ImageProducer.Style.CONTOUR;
-                smoothed = true;
+            else if (styleType.equalsIgnoreCase("contour")){
+            	style = ImageProducer.Style.CONTOUR;
+            	smoothed = true;
             }
+            else if (styleType.equalsIgnoreCase("fancyvec")) style = ImageProducer.Style.FANCYVEC;
+            else if (styleType.equalsIgnoreCase("linevec")) style = ImageProducer.Style.LINEVEC;
+            else if (styleType.equalsIgnoreCase("stumpvec")) style = ImageProducer.Style.STUMPVEC;
+            else if (styleType.equalsIgnoreCase("trivec")) style = ImageProducer.Style.TRIVEC;
+            else if (styleType.equalsIgnoreCase("prettyvec")) style = ImageProducer.Style.PRETTYVEC;
             else throw new StyleNotDefinedException("The style " + styles[0] +
                 " is not supported by this server");
 
@@ -485,6 +522,8 @@ public abstract class AbstractWmsController extends AbstractController {
             .opacity(styleRequest.getOpacity())
             .numColourBands(styleRequest.getNumColourBands())
             .numContours(styleRequest.getNumContours())
+            .vectorScale(styleRequest.getVectorScaleFactor())
+            .equator_y_index(equator_y_index)
             .build();
         // Need to make sure that the images will be compatible with the
         // requested image format
@@ -761,9 +800,13 @@ public abstract class AbstractWmsController extends AbstractController {
                     + "the scale extremes explicitly.");
             }
 
+            boolean transparent = params.getBoolean("transparent", false);
+            Color backgroundColor = params.getColor("bgcolor", Color.black);
+
             // Now create the legend image
-            legend = palette.createLegend(numColourBands, layer.getTitle(),
-                    layer.getUnits(), logarithmic, colorScaleRange);
+            legend = palette.createLegend(numColourBands, layer.getTitle(), layer.getUnits(),
+                                          logarithmic, colorScaleRange,
+                                          transparent, backgroundColor);
         }
         httpServletResponse.setContentType("image/png");
         ImageIO.write(legend, "png", httpServletResponse.getOutputStream());
@@ -1469,10 +1512,10 @@ public abstract class AbstractWmsController extends AbstractController {
                
             List<Float> retData = new ArrayList<Float>();
            
-            for(int i=0;i<width;i++){
-                double x = imageGrid.getXAxis().getCoordinateValue(i);
-                for(int j=0;j<height;j++){
-                    double y = imageGrid.getYAxis().getCoordinateValue(j);
+            for (int j = 0; j < height; j++) {
+                double y = imageGrid.getYAxis().getCoordinateValue(j);
+                for (int i = 0; i < width; i++) {
+                    double x = imageGrid.getXAxis().getCoordinateValue(i);
                     retData.add(interpolator.getValue(x, y));
                 }
             }
