@@ -356,7 +356,7 @@
   </build>
 
   <properties>
-    <cdm.version>4.6.6</cdm.version>
+    <cdm.version>4.6.7-SNAPSHOT</cdm.version>
 
     <org.geotoolkit.version>3.21</org.geotoolkit.version>
 

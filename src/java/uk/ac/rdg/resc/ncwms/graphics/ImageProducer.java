@@ -78,7 +78,7 @@ public final class ImageProducer
     private static final Logger logger = LoggerFactory.getLogger(ImageProducer.class);
 
     //public static enum Style {BOXFILL, VECTOR, CONTOUR, BARB, ARROWS};
-    public static enum Style {BOXFILL, VECTOR, CONTOUR, BARB, STUMPVEC, TRIVEC, LINEVEC, FANCYVEC, PRETTYVEC};
+    public static enum Style {BOXFILL, VECTOR, CONTOUR, BARB, STUMPVEC, TRIVEC, LINEVEC, FANCYVEC, PRETTYVEC, ARROWS};
     
     private Style style;
     // Width and height of the resulting picture
