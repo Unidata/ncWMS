@@ -30,39 +30,36 @@
     <repository>
       <id>unidata-releases</id>
       <name>UNIDATA Releases</name>
-      <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
+      <url>https://artifacts.unidata.ucar.edu/repository/unidata-releases/</url>
     </repository>
+    
     <snapshotRepository>
       <id>unidata-snapshots</id>
       <name>UNIDATA Snapshots</name>
-      <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-snapshots/</url>
+      <url>https://artifacts.unidata.ucar.edu/repository/unidata-snapshots/</url>
     </snapshotRepository>    
   </distributionManagement>
+  
   <repositories>
+    <!-- For "cdm". -->
     <repository>
-      <id>unidata</id>
-      <name>Unidata Repository</name>
-      <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata/</url>
+      <id>unidata-releases</id>
+      <name>UNIDATA Releases</name>
+      <url>https://artifacts.unidata.ucar.edu/repository/unidata-releases/</url>
     </repository>
+  
+    <!-- For "jsi", "prtree", "SGT_toolkit", and "json-taglib". -->
     <repository>
       <id>unidata-3rdparty</id>
-      <name>Unidata 3rd Party Repository</name>
-      <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-3rdparty/</url>
+      <name>UNIDATA 3rd Party</name>
+      <url>https://artifacts.unidata.ucar.edu/repository/unidata-3rdparty/</url>
     </repository>
-    <repository>
-      <id>mvnsearch</id>
-      <name>mvnsearch</name>
-      <url>http://www.mvnsearch.org/maven2/</url>
-    </repository>
-    <repository>
-      <id>springsource-repo</id>
-      <name>SpringSource Repository</name>
-      <url>http://repo.springsource.org/release</url>
-    </repository>
+    
+    <!-- For "geotk-referencing". -->
     <repository>
       <id>geotoolkit</id>
       <name>Geotoolkit binaries</name>
-      <url>http://maven.geotoolkit.org/</url>
+      <url>https://artifacts.unidata.ucar.edu/repository/unidata-geotoolkit/</url>
     </repository>
   </repositories>
 
@@ -144,11 +141,10 @@
     <dependency>
       <groupId>json-taglib</groupId>
       <artifactId>json-taglib</artifactId>
-      <version>${atg.taglib.json.version}</version>
+      <version>${json.taglib.version}</version>
       <scope>runtime</scope>
     </dependency>
-
-
+    
     <!-- logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -384,7 +380,7 @@
 
     <javax.servlet.version>3.1.0</javax.servlet.version>
     <javax.servlet.jstl.version>1.2</javax.servlet.jstl.version>
-    <atg.taglib.json.version>0.4.1</atg.taglib.json.version>
+    <json.taglib.version>0.4.1</json.taglib.version>
 
     <maven-compiler-plugin.version>2.5</maven-compiler-plugin.version>
     <maven-javadoc-plugin.version>2.8.1</maven-javadoc-plugin.version>
