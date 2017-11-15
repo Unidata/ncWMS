@@ -133,9 +133,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>jstl</artifactId>
-      <version>${javax.servlet.jstl.version}</version>
+      <groupId>org.apache.taglibs</groupId>
+      <artifactId>taglibs-standard-spec</artifactId>
+      <version>${apache.taglibs.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -379,7 +379,7 @@
     <org.springframework.version>3.2.12.RELEASE</org.springframework.version>
 
     <javax.servlet.version>3.1.0</javax.servlet.version>
-    <javax.servlet.jstl.version>1.2</javax.servlet.jstl.version>
+    <apache.taglibs.version>1.2.5</apache.taglibs.version>
     <json.taglib.version>0.4.1</json.taglib.version>
 
     <maven-compiler-plugin.version>2.5</maven-compiler-plugin.version>
