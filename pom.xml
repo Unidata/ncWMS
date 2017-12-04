@@ -59,7 +59,7 @@
     <repository>
       <id>geotoolkit</id>
       <name>Geotoolkit binaries</name>
-      <url>https://artifacts.unidata.ucar.edu/repository/unidata-geotoolkit/</url>
+      <url>http://maven.geotoolkit.org/</url>
     </repository>
   </repositories>
 
