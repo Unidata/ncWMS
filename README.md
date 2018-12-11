@@ -27,6 +27,9 @@ branch (including 1.0, 1.1, 1.1.1, 1.2, and various other "versions" used by TDS
 
 ### Tags
 
+**1.2.tds.4.6.12**
+Used in TDS version 4.6.12
+
 **1.2.tds.4.6.11**
 Used in TDS version 4.6.11
 
