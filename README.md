@@ -1,8 +1,3 @@
-<a href="https://scan.coverity.com/projects/4053">
-  <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/4053/badge.svg"/>
-</a>
-
 # Unidata ncWMS Code Repository
 
 This ncWMS code repository is used for building the subset of [ncWMS]
@@ -19,13 +14,16 @@ ncWMS community) to ensure that changes are shared as appropriate.
 
 ### Main ncWMS repository
 
-The master branch is the development branch. The master branch is using artifacts from
-the THREDDS project version 4.6.17-SNAPSHOT (current TDS development version)
+The main branch is the development branch. The main branch is using artifacts from
+the THREDDS project version 4.6.18-SNAPSHOT (current TDS development version)
 
 Major milestones from ncWMS 1.x development are tracked on the "**track-ncWMS-svn**"
 branch (including 1.0, 1.1, 1.1.1, 1.2, and various other "versions" used by TDS).
 
 ### Tags
+
+**1.2.tds.4.6.17**
+Used in TDS version 4.6.17
 
 **1.2.tds.4.6.16**
 Used in TDS version 4.6.16
