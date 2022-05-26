@@ -45,8 +45,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.multiaction.MultiActionController;
 import uk.ac.rdg.resc.ncwms.exceptions.MetadataException;
 
 /**
@@ -54,7 +54,8 @@ import uk.ac.rdg.resc.ncwms.exceptions.MetadataException;
  * @author Abdul Rauf Butt
  * @author Jon Blower
  */
-public class ScreenshotController extends MultiActionController
+@Controller
+public class ScreenshotController
 {
     private static final Logger log = LoggerFactory.getLogger(ScreenshotController.class);
 
